@@ -1,0 +1,101 @@
+{
+    "author": "astosia",
+    "dependencies": {
+        "pebble-clay": "^1.0.4",
+        "pebble-fctx": "^1.5.0",
+        "pebble-fctx-compiler": "^1.2.2"
+    },
+    "keywords": [],
+    "name": "Alienhead",
+    "pebble": {
+        "capabilities": [
+            "configurable"
+        ],
+        "displayName": "Alienhead",
+        "enableMultiJS": true,
+        "messageKeys": [
+            "Back1Color",
+            "Text1Color",
+            "Text2Color",
+            "HourColor",
+            "MinColor",
+            "bluetoothvibe",
+            "Text3Color",
+            "Text4Color",
+            "Text5Color",
+            "FrameColor1",
+            "Text6Color",
+            "Text7Color"
+        ],
+        "projectType": "native",
+        "resources": {
+            "media": [
+                {
+                    "file": "data/Oswald.ffont",
+                    "name": "OSWALD_FFONT",
+                    "targetPlatforms": null,
+                    "type": "raw"
+                },
+                {
+                    "file": "data/DIN",
+                    "name": "FONT_DINCONBOLD",
+                    "targetPlatforms": null,
+                    "type": "raw"
+                },
+                {
+                    "file": "data/Open sans ffont",
+                    "name": "OPENSANSCON_FFONT",
+                    "targetPlatforms": null,
+                    "type": "raw"
+                },
+                {
+                    "file": "data/STEELFISH BIG",
+                    "name": "FONT_STEELFISH",
+                    "targetPlatforms": null,
+                    "type": "raw"
+                },
+                {
+                    "file": "fonts/Weathericons",
+                    "name": "FONT_WEATHERICONS_18",
+                    "targetPlatforms": null,
+                    "type": "font"
+                },
+                {
+                    "file": "fonts/Weathericons",
+                    "name": "FONT_WEATHERICONS_20",
+                    "targetPlatforms": null,
+                    "type": "font"
+                },
+                {
+                    "file": "fonts/Dripicons",
+                    "name": "FONT_DRIPICONS_16",
+                    "targetPlatforms": null,
+                    "type": "font"
+                },
+                {
+                    "file": "images/alienhead2.png",
+                    "name": "IMAGE_ALIENHEAD",
+                    "type": "bitmap"
+                },
+                {
+                    "file": "fonts/Dripicons",
+                    "name": "FONT_DRIPICONS_18",
+                    "targetPlatforms": null,
+                    "type": "font"
+                }
+            ]
+        },
+        "sdkVersion": "3",
+        "targetPlatforms": [
+            "aplite",
+            "basalt",
+            "chalk",
+            "diorite"
+        ],
+        "uuid": "bfc03c0d-2dc6-4467-8f03-0b76224f50b7",
+        "watchapp": {
+            "watchface": true
+        }
+    },
+    "version": "1.1.0"
+}
