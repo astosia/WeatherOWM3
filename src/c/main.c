@@ -13,7 +13,8 @@
 //Static and initial vars
 static GFont //FontHour,
 FontDate,
-FontDate2,
+FontTemp,
+FontTempFore,
 //FontAMPM,
 //FontBattery,
 //FontDivider,
@@ -32,13 +33,58 @@ static Layer * s_canvas;
 static Layer * s_canvas_bt_icon;
 static Layer * s_canvas_qt_icon;
 static Layer * s_picture_bitmap_layer;
+static Layer * s_canvas_top_section; //weather layer
 static GBitmap *s_background_picture;
 
 Layer * time_area_layer;
 
 static int s_hours, s_minutes, s_weekday, s_day, s_month;
 
-
+static char* weather_conditions[] = {
+    "\U0000F07B", // 'unknown': 0,
+    "\U0000F00D", // 'clear': 1,
+    "\U0000F00D", // 'sunny': 2,
+    "\U0000F002", // 'partlycloudy': 3,
+    "\U0000F041", // 'mostlycloudy': 4,
+    "\U0000F00C", // 'mostlysunny': 5,
+    "\U0000F002", // 'partlysunny': 6,
+    "\U0000F013", // 'cloudy': 7,
+    "\U0000F019", // 'rain': 8,
+    "\U0000F01B", // 'snow': 9,
+    "\U0000F01D", // 'tstorms': 10,
+    "\U0000F0b5", // 'sleat': 11,
+    "\U0000F00A", // 'flurries': 12,
+    "\U0000F0b6", // 'hazy': 13,
+    "\U0000F01D", // 'chancetstorms': 14,
+    "\U0000F01B", // 'chancesnow': 15,
+    "\U0000F0b5", // 'chancesleat': 16,
+    "\U0000F008", // 'chancerain': 17,
+    "\U0000F01B", // 'chanceflurries': 18,
+    "\U0000F07B", // 'nt_unknown': 19,
+    "\U0000F02E", // 'nt_clear': 20,
+    "\U0000F02E", // 'nt_sunny': 21,
+    "\U0000F083", // 'nt_partlycloudy': 22,
+    "\U0000F086", // 'nt_mostlycloudy': 23,
+    "\U0000F081", // 'nt_mostlysunny': 24,
+    "\U0000F086", // 'nt_partlysunny': 25,
+    "\U0000F013", // 'nt_cloudy': 26,
+    "\U0000F019", // 'nt_rain': 27,
+    "\U0000F01B", // 'nt_snow': 28,
+    "\U0000F01D", // 'nt_tstorms': 29,
+    "\U0000F0b5", // 'nt_sleat': 30,
+    "\U0000F038", // 'nt_flurries': 31,
+    "\U0000F04A", // 'nt_hazy': 32,
+    "\U0000F01D", // 'nt_chancetstorms': 33,
+    "\U0000F038", // 'nt_chancesnow': 34,
+    "\U0000F0B3", // 'nt_chancesleat': 35,
+    "\U0000F036", // 'nt_chancerain': 36,
+    "\U0000F038", // 'nt_chanceflurries': 37,
+    "\U0000F003", // 'fog': 38,
+    "\U0000F04A", // 'nt_fog': 39,
+    "\U0000F050", // 'strong wind': 40,
+    "\U0000F015", // 'hail': 41,
+    "\U0000F056", // 'tornado': 42,
+};
 //////Init Configuration///
 //Init Clay
 ClaySettings settings;
@@ -55,11 +101,13 @@ static void prv_default_settings(){
   settings.ALIEN = false;
 //  settings.Text7Color = GColorWhite;
   settings.HourColor = GColorBlack;
-
+  settings.WeatherUnit = 0;
+  settings.UpSlider = 30;
 //  settings.MinColor = GColorWhite;
  }
 
 bool BTOn=true;
+bool showForecastWeather = false;
 
 //////End Configuration///
 ///////////////////////////
@@ -113,6 +161,12 @@ static void quiet_time_icon () {
   if(!quiet_time_is_active()) {
   layer_set_hidden(s_canvas_qt_icon,true);
   }
+}
+
+static void accel_tap_handler(AccelAxisType axis, int32_t direction) {
+  // A tap event occured
+  showForecastWeather = !showForecastWeather;
+  layer_mark_dirty (s_canvas_top_section);
 }
 
 #ifdef PBL_MICROPHONE
@@ -228,7 +282,7 @@ void update_time_area_layer(Layer *l, GContext* ctx7) {
   snprintf(timedraw, sizeof(timedraw), "%s:%s",hournow,minnow);
 
   time_pos.x = INT_TO_FIXED(PBL_IF_ROUND_ELSE(90, 72) + h_adjust);
-  time_pos.y = INT_TO_FIXED(PBL_IF_ROUND_ELSE(128, 128)  + v_adjust);
+  time_pos.y = INT_TO_FIXED(PBL_IF_ROUND_ELSE(127, 127)  + v_adjust);
 
   fctx_set_offset(&fctx, time_pos);
   fctx_draw_string(&fctx, timedraw, time_font, GTextAlignmentCenter, FTextAnchorMiddle);
@@ -263,10 +317,10 @@ static void layer_update_proc(Layer * layer1, GContext * ctx){
 
  GRect DayofWeekRect =
   (PBL_IF_ROUND_ELSE(
-      GRect(0, 140, 100, 16),
+      GRect(0, 142, 98, 16),
       GRect(0, 140, 72, 16)));
 
-  /*GRect DateRect =
+    /*GRect DateRect =
     (PBL_IF_ROUND_ELSE(
       GRect(52, 140, 40, 16),
       GRect(52, 140, 40, 16)));
@@ -354,15 +408,41 @@ static void layer_update_proc(Layer * layer1, GContext * ctx){
   //graphics_draw_text(ctx, datenow, FontDate, DayofWeekRect, GTextOverflowModeWordWrap, PBL_IF_ROUND_ELSE(GTextAlignmentCenter,GTextAlignmentRight), NULL);
   graphics_draw_text(ctx, daydate, FontDate, DayofWeekRect, GTextOverflowModeWordWrap, PBL_IF_ROUND_ELSE(GTextAlignmentRight,GTextAlignmentCenter), NULL);
 
-
-
-  //graphics_context_set_text_color(ctx, settings.Text6Color);
-  //graphics_draw_text(ctx, daynow, FontDate2, DateRect, GTextOverflowModeWordWrap, PBL_IF_ROUND_ELSE(GTextAlignmentCenter,GTextAlignmentCenter), NULL);
-
-  //graphics_context_set_text_color(ctx, settings.Text5Color);
-  //graphics_draw_text(ctx, monthnow, FontDate, MonthNameRect, GTextOverflowModeWordWrap, PBL_IF_ROUND_ELSE(GTextAlignmentCenter,GTextAlignmentLeft), NULL);
-
   }
+
+  static void layer_update_proc_weather(Layer * layer1, GContext * ctx){
+
+
+
+
+    char TempToDraw[20];
+
+    graphics_context_set_text_color(ctx,settings.Text3Color);
+
+    if (!showForecastWeather)
+        {
+    GRect TempRect =  //temperature number
+        (PBL_IF_ROUND_ELSE(
+          GRect(108, 142, 180-100, 16),
+          GRect(74, 140, 72-2, 16)));
+     snprintf(TempToDraw, sizeof(TempToDraw), "%s",settings.tempstring);
+     graphics_draw_text(ctx, TempToDraw, FontTemp,TempRect, GTextOverflowModeFill, PBL_IF_ROUND_ELSE(GTextAlignmentLeft,GTextAlignmentCenter), NULL);
+
+        }
+    else
+        {
+    GRect TempRect =  //temperature number
+        (PBL_IF_ROUND_ELSE(
+          GRect(106, 145, 180-100, 16),
+          GRect(74, 140, 72-2, 16)));
+    snprintf(TempToDraw, sizeof(TempToDraw), "%s",settings.temphistring);
+    graphics_draw_text(ctx, TempToDraw, FontTempFore, TempRect, GTextOverflowModeFill, PBL_IF_ROUND_ELSE(GTextAlignmentLeft,GTextAlignmentCenter), NULL);
+
+        }
+
+    //graphics_draw_text(ctx, TempToDraw, FontDate, TempRect, GTextOverflowModeFill, PBL_IF_ROUND_ELSE(GTextAlignmentLeft,GTextAlignmentCenter), NULL);
+
+    }
 
 
 static void layer_update_proc_bt(Layer * layer3, GContext * ctx3){
@@ -370,27 +450,27 @@ static void layer_update_proc_bt(Layer * layer3, GContext * ctx3){
 
   GRect BTIconRect =
     (PBL_IF_ROUND_ELSE(
-      GRect(0,140,40,20),
-      GRect(0,140,38,20)));
+      GRect(128,17,40,20),
+      GRect(144-40,5,38,20)));
 
 
  bluetooth_callback(connection_service_peek_pebble_app_connection());
 
  graphics_context_set_text_color(ctx3, settings.Text4Color);
- graphics_draw_text(ctx3, "z", FontIcon2, BTIconRect, GTextOverflowModeFill,PBL_IF_ROUND_ELSE(GTextAlignmentCenter,GTextAlignmentLeft), NULL);
+ graphics_draw_text(ctx3, "z", FontIcon2, BTIconRect, GTextOverflowModeFill,PBL_IF_ROUND_ELSE(GTextAlignmentLeft,GTextAlignmentRight), NULL);
   }
 
 static void layer_update_proc_qt(Layer * layer4, GContext * ctx4){
    // Create Rects
  GRect QTIconRect =
     (PBL_IF_ROUND_ELSE(
-      GRect(104,140,40,20),
-      GRect(104,140,38,20)));
+      GRect(13,17,40,20),
+      GRect(2,5,38,20)));
 
  quiet_time_icon();
 
  graphics_context_set_text_color(ctx4, settings.Text4Color);
- graphics_draw_text(ctx4, "\U0000E061", FontIcon2, QTIconRect, GTextOverflowModeFill,PBL_IF_ROUND_ELSE(GTextAlignmentCenter,GTextAlignmentRight), NULL);
+ graphics_draw_text(ctx4, "\U0000E061", FontIcon2, QTIconRect, GTextOverflowModeFill,PBL_IF_ROUND_ELSE(GTextAlignmentRight,GTextAlignmentLeft), NULL);
 
 }
 
@@ -424,6 +504,27 @@ static void prv_inbox_received_handler(DictionaryIterator * iter, void * context
     settings.ALIEN = (int) alien_t -> value -> int32;
     APP_LOG(APP_LOG_LEVEL_DEBUG, "Alien tuple %d", settings.ALIEN);
   }*/
+
+  // Weather conditions
+    Tuple * wtemp_t = dict_find(iter, MESSAGE_KEY_WeatherTemp);
+    if (wtemp_t){
+    snprintf(settings.tempstring, sizeof(settings.tempstring), "%s", wtemp_t -> value -> cstring);
+    }
+
+    Tuple * wforetemp_t = dict_find(iter, MESSAGE_KEY_TempFore);
+    if (wforetemp_t){
+      snprintf(settings.temphistring, sizeof(settings.temphistring), "%s", wforetemp_t -> value -> cstring);
+    }
+
+    Tuple * iconnow_tuple = dict_find(iter, MESSAGE_KEY_IconNow);
+      if (iconnow_tuple){
+        snprintf(settings.iconnowstring,sizeof(settings.iconnowstring),"%s",weather_conditions[(int)iconnow_tuple->value->int32]);
+    }
+
+    Tuple * iconfore_tuple = dict_find(iter, MESSAGE_KEY_IconFore);
+    if (iconfore_tuple){
+      snprintf(settings.iconforestring,sizeof(settings.iconforestring),"%s",weather_conditions[(int)iconfore_tuple->value->int32]);
+    }
 
   Tuple * alien_t = dict_find(iter, MESSAGE_KEY_ALIEN);
   if (alien_t){
@@ -504,6 +605,7 @@ static void prv_inbox_received_handler(DictionaryIterator * iter, void * context
   //Update colors
   layer_mark_dirty(s_picture_bitmap_layer);
   layer_mark_dirty(s_canvas);
+  layer_mark_dirty(s_canvas_top_section);
   layer_mark_dirty(s_canvas_bt_icon);
   layer_mark_dirty(s_canvas_qt_icon);
   layer_mark_dirty(time_area_layer);
@@ -544,6 +646,10 @@ static void window_load(Window * window){
     layer_add_child(window_get_root_layer(s_window), time_area_layer);
     layer_set_update_proc(time_area_layer, update_time_area_layer);
 
+  s_canvas_top_section = layer_create(bounds4);
+      layer_set_update_proc(s_canvas_top_section, layer_update_proc_weather);
+      layer_add_child(window_layer, s_canvas_top_section);
+
 
 }
 
@@ -555,6 +661,7 @@ static void window_unload(Window * window){
   layer_destroy(time_area_layer);
   layer_destroy(s_canvas_bt_icon);
   layer_destroy(s_canvas_qt_icon);
+  layer_destroy(s_canvas_top_section);
   window_destroy(s_window);
 //  fonts_unload_custom_font(FontIcon);
   fonts_unload_custom_font(FontIcon2);
@@ -580,6 +687,7 @@ void main_window_update(int hours, int minutes, int weekday, int day, int month)
 
   layer_mark_dirty(s_picture_bitmap_layer);
   layer_mark_dirty(s_canvas);
+  layer_mark_dirty(s_canvas_top_section);
   layer_mark_dirty(s_canvas_bt_icon);
   layer_mark_dirty(s_canvas_qt_icon);
   layer_mark_dirty(time_area_layer);
@@ -620,8 +728,10 @@ static void init(){
   time_font =  ffont_create_from_resource(RESOURCE_ID_FFONT_GRAM);
  //  time_font =  ffont_create_from_resource(RESOURCE_ID_FONT_STEELFISH);
  // time_font = ffont_create_from_resource(RESOURCE_ID_FONT_DINCONBOLD);
-  FontDate = fonts_get_system_font(FONT_KEY_GOTHIC_24_BOLD);
-  FontDate2 = fonts_get_system_font(FONT_KEY_GOTHIC_24_BOLD);
+  FontDate = PBL_IF_ROUND_ELSE(fonts_get_system_font(FONT_KEY_GOTHIC_24),fonts_get_system_font(FONT_KEY_GOTHIC_24_BOLD));
+  FontTemp = fonts_get_system_font(FONT_KEY_GOTHIC_24_BOLD);
+  FontTempFore = PBL_IF_ROUND_ELSE(fonts_get_system_font(FONT_KEY_GOTHIC_18),fonts_get_system_font(FONT_KEY_GOTHIC_24_BOLD));
+
   //FontAMPM = fonts_get_system_font(FONT_KEY_GOTHIC_24_BOLD);
   //FontDivider = fonts_get_system_font(FONT_KEY_BITHAM_42_BOLD);
   //FontBattery= fonts_get_system_font(PBL_IF_ROUND_ELSE(FONT_KEY_GOTHIC_14,FONT_KEY_GOTHIC_18_BOLD));
@@ -637,6 +747,7 @@ static void init(){
     .pebble_app_connection_handler = bluetooth_vibe_icon
   });
   bluetooth_vibe_icon(connection_service_peek_pebble_app_connection());
+  accel_tap_service_subscribe(accel_tap_handler);
  // handle_battery(battery_state_service_peek());
 }
 static void deinit(){
@@ -645,7 +756,7 @@ static void deinit(){
 //   tick_timer_service_unsubscribe();
   battery_state_service_unsubscribe();
   connection_service_unsubscribe();
-
+  accel_tap_service_unsubscribe();
 }
 int main(){
   init();

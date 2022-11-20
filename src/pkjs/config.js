@@ -5,6 +5,16 @@ module.exports = [
     "defaultValue": "Settings"
   },
   {
+  "type": "heading",
+  "defaultValue": "Weather will not show unless a weather provider is selected and set up.",
+  "size":6
+  },
+  {
+  "type": "heading",
+  "defaultValue": "Set complications to the same colour as the background to hide them.",
+  "size":6
+  },
+  {
     "type": "section",
     "items": [
       {
@@ -45,7 +55,7 @@ module.exports = [
         "type": "color",
         "messageKey": "Text3Color",
         "defaultValue": "0x000000",
-        "label": "Date Colour",
+        "label": "Date & Temperature Colour",
         "allowGray":true
       },
 /*      {
@@ -80,6 +90,96 @@ module.exports = [
         "defaultValue": "0x000000",
         "label": "Quiet Time & BT icon colour"
       },
+       {
+        "type": "section",
+        "items": [
+              {
+                "type": "heading",
+                "defaultValue": "Weather settings"
+              },
+              {
+                "type": "slider",
+                "messageKey": "UpSlider",
+                "defaultValue": 30,
+                "label": "Weather update frequency (minutes)",
+                "description": "More frequent requests will drain your phone battery more quickly",
+                "min": 15,
+                "max": 120,
+                "step": 15
+              },
+              {
+                "type": "toggle",
+                "messageKey": "WeatherUnit",
+                "label": "Temperature in Fahrenheit",
+                "defaultValue": false,
+              },
+              {
+                "type": "select",
+                "messageKey": "WeatherProv",
+                "defaultValue": "owm",
+                "label": "Weather Provider",
+                "options": [
+                  {
+                    "label": "OpenWeatherMap",
+                    "value": "owm"
+                  },
+                  {
+                    "label": "DarkSky",
+                    "value": "ds"
+                  }
+                ]
+              },
+              {
+                 "type": "input",
+                 "messageKey": "Lat",
+                 "defaultValue": "",
+                 "label": "Manual Location - Latitude",
+                 "attributes": {
+                 "placeholder": "eg: 51.4962"
+                 }
+               },
+               {
+                  "type": "input",
+                  "messageKey": "Long",
+                  "defaultValue": "",
+                  "label": "Manual Location - Longitude",
+                  "description": "Leave both blank to use GPS location for weather. You can use <a href =https://www.google.com/maps>Google Maps</a> or <a href =https://www.openstreetmap.org/>OpenStreetMap</a> to find latitude & longitude.",
+                  "attributes": {
+                    "placeholder": "eg: -0.0989"
+                  }
+                },
+             {
+                "type": "input",
+                "messageKey": "APIKEY_User",
+                "defaultValue": "",
+                "label": "API Key",
+                "description": "If left blank, the watch will attempt to request an api from your pmkey.xyz.  If you don't have an api key, weather data will not be displayed. Existing DarkSky APIs will work, but you can no longer sign up for a new one. You can still register for a free personal API key for <a href =https://home.openweathermap.org/users/sign_up/>OpenWeatherMap here</a>.",
+                "attributes": {
+                  "placeholder": "Paste your API Key here"
+                }
+              },
+             {
+                "type": "input",
+                "messageKey": "EmailPMKEY",
+                "defaultValue": "",
+                "label": "pmkey.xyz User",
+                "description": "pmkey.xyz is a free service for Pebble users that allows you to safely store all your API keys in a single place. Check it out and sign up at <a href=https://www.pmkey.xyz/>pmkey.xyz</a>.",
+                "attributes": {
+                  "placeholder": "eg: jane.smith@pmkey.xyz",
+                  "type": "email"
+                }
+              },
+              {
+                "type": "input",
+                "messageKey": "PINPMKEY",
+                "defaultValue": "",
+                "label": "pmkey.xyz PIN",
+                "attributes": {
+                  "placeholder": "eg: 12345"
+                }
+              },
+            ]
+              },
           {
           "type": "submit",
           "defaultValue":"SAVE"

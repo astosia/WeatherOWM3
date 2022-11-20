@@ -16,6 +16,15 @@ typedef struct ClaySettings {
   GColor HourColor;
   GColor MinColor;
   bool ALIEN;
+  char* WeatherTemp;
+  char* TempFore;
+  char iconnowstring[4];
+  char iconforestring[4];
+  char tempstring[8];
+  char temphistring[10];
+  int UpSlider;
+  int WeatherUnit;
+  char* WindUnit;
 
  // bool Rotate;
  // bool RightLeft;
