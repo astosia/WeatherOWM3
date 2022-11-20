@@ -6,15 +6,16 @@
         "pebble-fctx-compiler": "^1.2.2"
     },
     "keywords": [],
-    "name": "Alienhead",
+    "name": "Alienwear",
     "pebble": {
         "capabilities": [
             "configurable"
         ],
-        "displayName": "Alienhead",
+        "displayName": "Alienwear",
         "enableMultiJS": true,
         "messageKeys": [
             "Back1Color",
+            "ALIEN",
             "Text1Color",
             "Text2Color",
             "HourColor",
@@ -24,33 +25,20 @@
             "Text4Color",
             "Text5Color",
             "FrameColor1",
-            "Text6Color",
-            "Text7Color"
+            "Text6Color"
         ],
         "projectType": "native",
         "resources": {
             "media": [
                 {
-                    "file": "data/Oswald.ffont",
-                    "name": "OSWALD_FFONT",
+                    "file": "data/Grammara-Narrow.ffont",
+                    "name": "FFONT_GRAM_NARROW",
                     "targetPlatforms": null,
                     "type": "raw"
                 },
                 {
-                    "file": "data/DIN",
-                    "name": "FONT_DINCONBOLD",
-                    "targetPlatforms": null,
-                    "type": "raw"
-                },
-                {
-                    "file": "data/Open sans ffont",
-                    "name": "OPENSANSCON_FFONT",
-                    "targetPlatforms": null,
-                    "type": "raw"
-                },
-                {
-                    "file": "data/STEELFISH BIG",
-                    "name": "FONT_STEELFISH",
+                    "file": "data/Grammara-Normal.ffont",
+                    "name": "FFONT_GRAM",
                     "targetPlatforms": null,
                     "type": "raw"
                 },
@@ -73,9 +61,14 @@
                     "type": "font"
                 },
                 {
-                    "file": "images/alienhead2.png",
+                    "file": "images/alien1clear.png",
                     "name": "IMAGE_ALIENHEAD",
-                    "type": "bitmap"
+                    "type": "png"
+                },
+                {
+                    "file": "images/alien1clearblue.png",
+                    "name": "IMAGE_ALIENBLUE",
+                    "type": "png"
                 },
                 {
                     "file": "fonts/Dripicons",
@@ -87,7 +80,6 @@
         },
         "sdkVersion": "3",
         "targetPlatforms": [
-            "aplite",
             "basalt",
             "chalk",
             "diorite"
