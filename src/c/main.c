@@ -11,21 +11,15 @@
 #define ROTATION_SETTING_RIGHT   1
 
 //Static and initial vars
-static GFont //FontHour,
+static GFont
 FontDate,
 FontTemp,
 FontTempFore,
-//FontAMPM,
-//FontBattery,
-//FontDivider,
-//FontIcon,
 FontIcon2,
 FontIcon3
 ;
 
 FFont* time_font;
-
-//char  settings.ALIEN[4];
 
 static Window * s_window;
 
@@ -99,31 +93,30 @@ static void prv_default_settings(){
   settings.Text5Color = GColorBlack;
   settings.Text6Color = GColorBlack;
   settings.ALIEN = false;
-//  settings.Text7Color = GColorWhite;
   settings.HourColor = GColorBlack;
   settings.WeatherUnit = 0;
   settings.UpSlider = 30;
-//  settings.MinColor = GColorWhite;
  }
 
 bool BTOn=true;
+bool GPSOn=true;
 bool showForecastWeather = false;
+int s_countdown = 0;
+int s_loop = 0;
 
 //////End Configuration///
 ///////////////////////////
 
 // Callback for js request
-void request_watchjs(){
-  //Starting loop at 0
-//  s_loop = 0;
-  // Begin dictionary
+/*void request_watchjs(){
+    // Begin dictionary
   DictionaryIterator * iter;
   app_message_outbox_begin( & iter);
   // Add a key-value pair
   dict_write_uint8(iter, 0, 0);
   // Send the message!
   app_message_outbox_send();
-}
+}*/
 
 
 ///BT Connection
@@ -134,15 +127,10 @@ static void bluetooth_callback(bool connected){
 static void update_background_picture() {
   if (!settings.ALIEN){
           s_background_picture = gbitmap_create_with_resource (RESOURCE_ID_IMAGE_ALIENHEAD);
-        //  APP_LOG(APP_LOG_LEVEL_DEBUG, "ALIEN %s", settings.ALIEN);
-          APP_LOG(APP_LOG_LEVEL_DEBUG, "should be white");
-  //  } else if ((settings.Invert == true) && (IsNightNow == false)){
-  //    IsInvertedNow = true;
-  //          s_background_picture = gbitmap_create_with_resource (RESOURCE_ID_IMAGE_BACKGROUNDINV);
-    } else {
+          //APP_LOG(APP_LOG_LEVEL_DEBUG, "should be white");
+  } else {
           s_background_picture = gbitmap_create_with_resource (RESOURCE_ID_IMAGE_ALIENBLUE);
-        //  APP_LOG(APP_LOG_LEVEL_DEBUG, "ALIEN %s", settings.ALIEN);
-          APP_LOG(APP_LOG_LEVEL_DEBUG, "should be black & blue");
+          //APP_LOG(APP_LOG_LEVEL_DEBUG, "should be black & blue");
     }
 }
 
@@ -174,7 +162,6 @@ void layer_update_proc_background (Layer * back_layer, GContext * ctx){
 
   gbitmap_destroy(s_background_picture);
   update_background_picture();
-  //APP_LOG(APP_LOG_LEVEL_DEBUG, "Alien in layer update proc %s", settings.ALIEN);
   GRect bitmap_bounds = gbitmap_get_bounds(s_background_picture);
   graphics_context_set_compositing_mode(ctx, GCompOpSet);
   graphics_draw_bitmap_in_rect(ctx, s_background_picture, bitmap_bounds);
@@ -184,21 +171,8 @@ void layer_update_proc_background (Layer * back_layer, GContext * ctx){
 #else
 
 void layer_update_proc_background (Layer * back_layer, GContext * ctx){
-  //GRect bounds = layer_get_bounds(back_layer);
-  //GRect Backgroundrect = GRect(0, 0, bounds.size.w, bounds.size.h);
-
   gbitmap_destroy(s_background_picture);
   update_background_picture();
-  //APP_LOG(APP_LOG_LEVEL_DEBUG, "Alien in layer update proc %s", settings.ALIEN);
-
-  /*  if ((settings.ALIEN == 49)){
-    graphics_context_set_fill_color(ctx,GColorWhite);
-    graphics_fill_rect(ctx, Backgroundrect,0,GCornersAll);
-    }
-    else {
-    graphics_context_set_fill_color(ctx,GColorBlack);
-    graphics_fill_rect(ctx, Backgroundrect,0,GCornersAll);
-  }*/
 
   GRect bitmap_bounds = gbitmap_get_bounds(s_background_picture);
   GRect Bitmaprect = GRect(34, 2, bitmap_bounds.size.w, bitmap_bounds.size.h);
@@ -244,20 +218,16 @@ void update_time_area_layer(Layer *l, GContext* ctx7) {
 
   // if it's a round watch, EVERYTHING CHANGES
   #ifdef PBL_ROUND
-//    v_adjust = ROUND_VERTICAL_PADDING;
     v_adjust = 0;
 
   #else
-    // for rectangular watches, adjust X position based on sidebar position
-  //    h_adjust -= ACTION_BAR_WIDTH / 2 + 1;
-   h_adjust = 0;
+    h_adjust = 0;
   #endif
 
   FPoint time_pos;
   fctx_begin_fill(&fctx);
   fctx_set_text_em_height(&fctx, time_font, font_size);
   fctx_set_color_bias(&fctx,0);
-//  fctx_set_text_em_height(&fctx, minutes_font, font_size);
 
   int hourdraw;
   char hournow[3];
@@ -294,58 +264,29 @@ void update_time_area_layer(Layer *l, GContext* ctx7) {
 //Update main layer
 
 static void layer_update_proc(Layer * layer1, GContext * ctx){
-  // Create Rects
-  //GRect bounds1 = layer_get_bounds(layer1);
-
-  /*GRect MediumBand =
-    PBL_IF_ROUND_ELSE(
-    GRect(8, 75, 36, 30),
-    GRect(102, 68, 36, 32));
-
-
-   //Build display
-//  graphics_context_set_fill_color(ctx, settings.Back1Color);
-//  graphics_fill_rect(ctx, bounds1, 0, GCornerNone);
-  graphics_context_set_fill_color(ctx, settings.FrameColor1);
-  graphics_fill_rect(ctx, MediumBand,4,GCornersAll);*/
-
-  GRect VerticalDivierRect =
+  GRect VerticalDividerRect =
       (PBL_IF_ROUND_ELSE(
         GRect(102,144+2,2,180-144),
         GRect(72,144+2,2,168-144)));
 
-
- GRect DayofWeekRect =
+  GRect DayofWeekRect =
   (PBL_IF_ROUND_ELSE(
       GRect(0, 142, 98, 16),
       GRect(0, 140, 72, 16)));
 
-    /*GRect DateRect =
-    (PBL_IF_ROUND_ELSE(
-      GRect(52, 140, 40, 16),
-      GRect(52, 140, 40, 16)));
-
-
-  GRect MonthNameRect =
-    (PBL_IF_ROUND_ELSE(
-      GRect(96, 140, 40, 16),
-      GRect(96, 140, 48, 16)));
-*/
   GRect BatteryRect =
-      (PBL_IF_ROUND_ELSE(
-        GRect(0,144,180,2),
-        GRect(0,144,144,2)));
+    (PBL_IF_ROUND_ELSE(
+      GRect(0,144,180,2),
+      GRect(0,144,144,2)));
 
       //Battery
-    int s_battery_level = battery_state_service_peek().charge_percent;
+  int s_battery_level = battery_state_service_peek().charge_percent;
 
   #ifdef PBL_ROUND
     int width_round = (s_battery_level * 144) / 100;
   #else
     int width_rect = (s_battery_level * 144) / 100;
   #endif
-
-
 
   GRect BatteryFillRect =
       (PBL_IF_ROUND_ELSE(
@@ -359,12 +300,11 @@ static void layer_update_proc(Layer * layer1, GContext * ctx){
   // Draw the battery bar & divider bar backgrounds
   graphics_context_set_fill_color(ctx, settings.FrameColor1);// GColorBlack);
   graphics_fill_rect(ctx, BatteryRect, 0, GCornerNone);
-  graphics_fill_rect(ctx, VerticalDivierRect, 0, GCornerNone);
+  graphics_fill_rect(ctx, VerticalDividerRect, 0, GCornerNone);
 
   // Draw the battery bar
   graphics_context_set_fill_color(ctx, settings.Text2Color);
   graphics_fill_rect(ctx,BatteryFillRect, 0, GCornerNone);
-
 
   //Date
   // Local language
@@ -374,11 +314,6 @@ static void layer_update_proc(Layer * layer1, GContext * ctx){
   char datenow[10];
   snprintf(datenow, sizeof(datenow), "%s", datedraw);
 
-/*  char monthdraw[10];
-  fetchmonth (s_month, sys_locale, monthdraw);
-  char monthnow[10];
-  snprintf(monthnow, sizeof(monthnow), "%s", monthdraw);
-*/
   int daydraw;
   daydraw = s_day;
   char daynow[8];
@@ -387,41 +322,19 @@ static void layer_update_proc(Layer * layer1, GContext * ctx){
   char daydate[9];
   snprintf(daydate, sizeof (daydate), "%s %02d", datedraw,daydraw);
 
-  // Concatenate date
-  //strcat(/*datenow,*/ convertday);
-
-
-  //Battery
-//  int battery_level = battery_state_service_peek().charge_percent;
-//  char battperc[20];
-//  snprintf(battperc, sizeof(battperc), "%d", battery_level);
-//  strcat(battperc, "%");
-
-  //dates band
-//  graphics_context_set_text_color(ctx, settings.Text2Color);
-//  graphics_draw_text(ctx, battperc, FontBattery, BatteryRect, GTextOverflowModeWordWrap, PBL_IF_ROUND_ELSE(GTextAlignmentCenter, GTextAlignmentRight), NULL);
-
-  //graphics_context_set_text_color(ctx, settings.Text1Color);
-  //graphics_draw_text(ctx, ampm, FontAMPM, ampmRect, GTextOverflowModeWordWrap, PBL_IF_ROUND_ELSE(GTextAlignmentCenter, GTextAlignmentRight), NULL);
-
   graphics_context_set_text_color(ctx, settings.Text3Color);
-  //graphics_draw_text(ctx, datenow, FontDate, DayofWeekRect, GTextOverflowModeWordWrap, PBL_IF_ROUND_ELSE(GTextAlignmentCenter,GTextAlignmentRight), NULL);
   graphics_draw_text(ctx, daydate, FontDate, DayofWeekRect, GTextOverflowModeWordWrap, PBL_IF_ROUND_ELSE(GTextAlignmentRight,GTextAlignmentCenter), NULL);
 
   }
 
   static void layer_update_proc_weather(Layer * layer1, GContext * ctx){
-
-
-
-
     char TempToDraw[20];
 
     graphics_context_set_text_color(ctx,settings.Text3Color);
 
     if (!showForecastWeather)
         {
-    GRect TempRect =  //temperature number
+    GRect TempRect =  //shows current temp
         (PBL_IF_ROUND_ELSE(
           GRect(108, 142, 180-100, 16),
           GRect(74, 140, 72-2, 16)));
@@ -431,7 +344,7 @@ static void layer_update_proc(Layer * layer1, GContext * ctx){
         }
     else
         {
-    GRect TempRect =  //temperature number
+    GRect TempRect =  //shows forecast temp hi|low
         (PBL_IF_ROUND_ELSE(
           GRect(106, 145, 180-100, 16),
           GRect(74, 140, 72-2, 16)));
@@ -439,9 +352,6 @@ static void layer_update_proc(Layer * layer1, GContext * ctx){
     graphics_draw_text(ctx, TempToDraw, FontTempFore, TempRect, GTextOverflowModeFill, PBL_IF_ROUND_ELSE(GTextAlignmentLeft,GTextAlignmentCenter), NULL);
 
         }
-
-    //graphics_draw_text(ctx, TempToDraw, FontDate, TempRect, GTextOverflowModeFill, PBL_IF_ROUND_ELSE(GTextAlignmentLeft,GTextAlignmentCenter), NULL);
-
     }
 
 
@@ -452,7 +362,6 @@ static void layer_update_proc_bt(Layer * layer3, GContext * ctx3){
     (PBL_IF_ROUND_ELSE(
       GRect(128,17,40,20),
       GRect(144-40,5,38,20)));
-
 
  bluetooth_callback(connection_service_peek_pebble_app_connection());
 
@@ -492,20 +401,8 @@ static void prv_save_settings(){
 
 // Handle the response from AppMessage
 static void prv_inbox_received_handler(DictionaryIterator * iter, void * context){
-
-  // Background Color
-  /*Tuple * bg1_color_t = dict_find(iter, MESSAGE_KEY_Back1Color);
-  if (bg1_color_t){
-    settings.Back1Color = GColorFromHEX(bg1_color_t-> value -> int32);
-  }*/
-
-  /*Tuple * alien_t = dict_find(iter, MESSAGE_KEY_ALIEN);
-  if (alien_t){
-    settings.ALIEN = (int) alien_t -> value -> int32;
-    APP_LOG(APP_LOG_LEVEL_DEBUG, "Alien tuple %d", settings.ALIEN);
-  }*/
-
-  // Weather conditions
+    s_loop = s_loop + 1;
+    // Weather conditions
     Tuple * wtemp_t = dict_find(iter, MESSAGE_KEY_WeatherTemp);
     if (wtemp_t){
     snprintf(settings.tempstring, sizeof(settings.tempstring), "%s", wtemp_t -> value -> cstring);
@@ -526,6 +423,14 @@ static void prv_inbox_received_handler(DictionaryIterator * iter, void * context
       snprintf(settings.iconforestring,sizeof(settings.iconforestring),"%s",weather_conditions[(int)iconfore_tuple->value->int32]);
     }
 
+    Tuple * frequpdate = dict_find(iter, MESSAGE_KEY_UpSlider);
+    if (frequpdate){
+      settings.UpSlider = (int) frequpdate -> value -> int32;
+      //Restart the counter
+      s_countdown = settings.UpSlider;
+    }
+
+// Alien choice
   Tuple * alien_t = dict_find(iter, MESSAGE_KEY_ALIEN);
   if (alien_t){
     if (alien_t -> value -> int32 == 0){
@@ -537,7 +442,7 @@ static void prv_inbox_received_handler(DictionaryIterator * iter, void * context
       }
   }
 
-
+//Colours
   Tuple * fr1_color_t = dict_find(iter, MESSAGE_KEY_FrameColor1);
   if (fr1_color_t){
     settings.FrameColor1 = GColorFromHEX(fr1_color_t-> value -> int32);
@@ -548,17 +453,11 @@ static void prv_inbox_received_handler(DictionaryIterator * iter, void * context
     settings.Text1Color = GColorFromHEX(tx1_color_t-> value -> int32);
   }
 
-  ///////////////////////////////
   Tuple * hr_color_t = dict_find(iter, MESSAGE_KEY_HourColor);
   if (hr_color_t){
     settings.HourColor = GColorFromHEX(hr_color_t-> value -> int32);
   }
 
-  ///Tuple * min_color_t = dict_find(iter, MESSAGE_KEY_MinColor);
-  //if (min_color_t){
-  //  settings.MinColor = GColorFromHEX(min_color_t-> value -> int32);
-  //}
- ///////////////////////////////
   Tuple * tx2_color_t = dict_find(iter, MESSAGE_KEY_Text2Color);
   if (tx2_color_t){
     settings.Text2Color = GColorFromHEX(tx2_color_t-> value -> int32);
@@ -584,25 +483,7 @@ static void prv_inbox_received_handler(DictionaryIterator * iter, void * context
     settings.Text6Color = GColorFromHEX(tx6_color_t-> value -> int32);
     }
 
-  //  Tuple * tx7_color_t = dict_find(iter,MESSAGE_KEY_Text7Color);
-  // if (tx7_color_t){
-  //   settings.Text7Color = GColorFromHEX(tx7_color_t-> value -> int32);
-  //   }
-
-
-  //End data gathered
-  // Get display handlers
-
-/*  Tuple * disntheme_t = dict_find(iter, MESSAGE_KEY_NightTheme);
-  if (disntheme_t){
-    if (disntheme_t -> value -> int32 == 0){
-      settings.NightTheme = false;
-      APP_LOG(APP_LOG_LEVEL_DEBUG, "NTHeme off");
-    } else settings.NightTheme = true;
-  } */
-
-
-  //Update colors
+  //Update for config changes
   layer_mark_dirty(s_picture_bitmap_layer);
   layer_mark_dirty(s_canvas);
   layer_mark_dirty(s_canvas_top_section);
@@ -610,14 +491,9 @@ static void prv_inbox_received_handler(DictionaryIterator * iter, void * context
   layer_mark_dirty(s_canvas_qt_icon);
   layer_mark_dirty(time_area_layer);
 
-
   // Save the new settings to persistent storage
-
-
   prv_save_settings();
 }
-
-
 
 //Load main layer
 static void window_load(Window * window){
@@ -646,10 +522,10 @@ static void window_load(Window * window){
     layer_add_child(window_get_root_layer(s_window), time_area_layer);
     layer_set_update_proc(time_area_layer, update_time_area_layer);
 
+//add weather layer
   s_canvas_top_section = layer_create(bounds4);
       layer_set_update_proc(s_canvas_top_section, layer_update_proc_weather);
       layer_add_child(window_layer, s_canvas_top_section);
-
 
 }
 
@@ -663,7 +539,6 @@ static void window_unload(Window * window){
   layer_destroy(s_canvas_qt_icon);
   layer_destroy(s_canvas_top_section);
   window_destroy(s_window);
-//  fonts_unload_custom_font(FontIcon);
   fonts_unload_custom_font(FontIcon2);
   fonts_unload_custom_font(FontIcon3);
   ffont_destroy(time_font);
@@ -685,7 +560,7 @@ void main_window_update(int hours, int minutes, int weekday, int day, int month)
   s_weekday = weekday;
   s_month = month;
 
-  layer_mark_dirty(s_picture_bitmap_layer);
+  //layer_mark_dirty(s_picture_bitmap_layer);
   layer_mark_dirty(s_canvas);
   layer_mark_dirty(s_canvas_top_section);
   layer_mark_dirty(s_canvas_bt_icon);
@@ -703,7 +578,61 @@ static void tick_handler(struct tm * time_now, TimeUnits changed){
 
   APP_LOG(APP_LOG_LEVEL_DEBUG, "Tick at %d", time_now -> tm_min);
 
+  if (s_countdown == 0){
+    //Reset
+    s_countdown = settings.UpSlider;
+  } else{
+    s_countdown = s_countdown - 1;
   }
+  APP_LOG(APP_LOG_LEVEL_DEBUG, "Countdown to update %d loop is %d, GPS is %d", s_countdown, s_loop, GPSOn);
+
+  if (s_countdown == 0 || s_countdown == 5){
+      APP_LOG(APP_LOG_LEVEL_DEBUG, "countdown is 0, updated weather at %d", time_now -> tm_min);
+      s_loop = 0;
+      // Begin dictionary
+      DictionaryIterator * iter;
+      app_message_outbox_begin( & iter);
+      // Add a key-value pair
+      dict_write_uint8(iter, 0, 0);
+      // Send the message!
+      app_message_outbox_send();
+
+  }
+
+  //If GPS was off request weather every 15 minutes
+    if (!GPSOn){
+        if (settings.UpSlider > 15){
+          if (s_countdown % 15 == 0){
+            APP_LOG(APP_LOG_LEVEL_DEBUG, "Attempt to request GPS on %d", time_now -> tm_min);
+            s_loop = 0;
+            // Begin dictionary
+            DictionaryIterator * iter;
+            app_message_outbox_begin( & iter);
+            // Add a key-value pair
+            dict_write_uint8(iter, 0, 0);
+            // Send the message!
+            app_message_outbox_send();
+          }
+        }
+      }
+
+    //onreconnection(BTOn, connection_service_peek_pebble_app_connection());
+    if (!BTOn && connection_service_peek_pebble_app_connection()){
+      APP_LOG(APP_LOG_LEVEL_DEBUG, "BT reconnected, requesting weather at %d", time_now -> tm_min);
+      s_loop = 0;
+      // Begin dictionary
+      DictionaryIterator * iter;
+      app_message_outbox_begin( & iter);
+      // Add a key-value pair
+      dict_write_uint8(iter, 0, 0);
+      // Send the message!
+      app_message_outbox_send();
+    }
+
+    bluetooth_callback(connection_service_peek_pebble_app_connection());
+
+
+}
 
 
 static void init(){
@@ -712,7 +641,8 @@ static void init(){
 
   prv_load_settings();
   // Listen for AppMessages
-
+  s_countdown = settings.UpSlider;
+  s_loop = 0;
   time_t now = time(NULL);
   struct tm *t = localtime(&now);
   s_hours=t->tm_hour;
