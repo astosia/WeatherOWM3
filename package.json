@@ -2,7 +2,7 @@
     "author": "astosia",
     "dependencies": {
         "pebble-clay": "^1.0.4",
-        "pebble-fctx": "^1.5.0",
+        "pebble-fctx": "^1.6.2",
         "pebble-fctx-compiler": "^1.2.2"
     },
     "keywords": [],
@@ -34,34 +34,17 @@
             "IconNow",
             "IconFore",
             "TempFore",
-            "WeatherTemp"
+            "WeatherTemp",
+            "CurrentOrFore"
         ],
         "projectType": "native",
         "resources": {
             "media": [
                 {
-                    "file": "data/Grammara-Narrow.ffont",
-                    "name": "FFONT_GRAM_NARROW",
-                    "targetPlatforms": null,
-                    "type": "raw"
-                },
-                {
                     "file": "data/Grammara-Normal.ffont",
                     "name": "FFONT_GRAM",
                     "targetPlatforms": null,
                     "type": "raw"
-                },
-                {
-                    "file": "fonts/Weathericons",
-                    "name": "FONT_WEATHERICONS_18",
-                    "targetPlatforms": null,
-                    "type": "font"
-                },
-                {
-                    "file": "fonts/Weathericons",
-                    "name": "FONT_WEATHERICONS_20",
-                    "targetPlatforms": null,
-                    "type": "font"
                 },
                 {
                     "file": "fonts/Dripicons",
@@ -90,10 +73,24 @@
                     "type": "png"
                 },
                 {
-                    "file": "fonts/Dripicons",
-                    "name": "FONT_DRIPICONS_18",
-                    "targetPlatforms": null,
-                    "type": "font"
+                    "file": "images/alien1snow.png",
+                    "name": "IMAGE_ALIENSNOW",
+                    "type": "png"
+                },
+                {
+                    "file": "images/alien1snowblue.png",
+                    "name": "IMAGE_ALIENSNOWBLUE",
+                    "type": "png"
+                },
+                {
+                    "file": "images/alien1cloud.png",
+                    "name": "IMAGE_ALIENCLOUD",
+                    "type": "png"
+                },
+                {
+                    "file": "images/alien1cloudblue.png",
+                    "name": "IMAGE_ALIENCLOUDBLUE",
+                    "type": "png"
                 }
             ]
         },
@@ -108,5 +105,5 @@
             "watchface": true
         }
     },
-    "version": "1.3.0"
+    "version": "1.5.0"
 }

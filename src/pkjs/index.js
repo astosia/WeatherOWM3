@@ -741,128 +741,12 @@ function suncalcinfo (pos){
                                     );
   }
 
-  function locationSuccessPWS(pos){
-
-    //Request PWS data
-    var settings2 = JSON.parse(localStorage.getItem('clay-settings')) || {};
-    var keyAPIwu=localStorage.getItem('wuKey');
-    console.log("PMKAPI key is" + keyAPIwu);
-    var userKeyApi=settings2.PWSAPIKEY_User;
-    console.log("Manual API key is" + userKeyApi);
-    var endapikey=apikeytouse(userKeyApi,keyAPIwu);
-    console.log(endapikey);
-    var stationID=settings2.PWSStationID_User;
-    console.log(stationID);
-    //var pwsapikey=apikeytouse(userKeyApi,keyAPIds);
-    var units = unitsToString(settings2.WeatherUnit);
-  //  var unitsOWM=unitsToStringOWM(settings.WeatherUnit);
-    var windunits = windunitsToString(settings2.WindUnit);
-    var rainunits = rainunitsToString(settings2.RainUnit);
-    var pressureunits = pressureunitsToString(settings2.PressureUnit);
-    // Construct URL
-    var urlPWS = "https://api.weather.com/v2/pws/observations/current?stationId=" +
-            stationID +
-            '&format=json&units=s&apiKey=' +
-            endapikey;
-
-    console.log("PWSUrl= " + urlPWS);
-    // Send request to DarkSky
-    xhrRequest(encodeURI(urlPWS), 'GET',function(responseText) {
-      // responseText contains a JSON object with current weather info
-      var json = JSON.parse(responseText);
-      localStorage.setItem("OKAPI", 0);
-            // Current Temperature
-      var tempf = Math.round((json.observations[0].metric_si.temp * 1.8) + 32);//+'\xB0'+units;
-      var tempc = Math.round(json.observations[0].metric_si.temp);
-        var temppws=String(temptousewu(units,tempf,tempc))+'\xB0';
-
-      var citypws = String(json.observations[0].stationID);
-      //current wind
-      var windkts = Math.round(json.observations[0].metric_si.windSpeed * 1.9438444924574);
-      var windkph = Math.round(json.observations[0].metric_si.windSpeed * 3.6);
-      var windms = Math.round(json.observations[0].metric_si.windSpeed);
-      var windmph = Math.round(json.observations[0].metric_si.windSpeed * 2.2369362920544);
-        var windpws = String(windtousewu(windunits,windkph,windmph,windms,windkts))+windunits;
-        var windroundpws = String(windtousewu(windunits,windkph,windmph,windms,windkts));//+windunits;
-      var winddegpws = String(json.observations[0].winddir);
-        var winddir_numpws = owm_WindToId[winddegpws];
-      var auxtimepws =new Date(json.observations[0].epoch*1000);
-      var pwstime=auxtimepws.getHours()*100+auxtimepws.getMinutes();
-      var precip_today_mm = Math.round(json.observations[0].metric_si.precipTotal*10)/10;
-      var precip_today_in = Math.round(json.observations[0].metric_si.precipTotal/25.4*10)/10;
-      var precip_today_pws = String(raintouse(rainunits,precip_today_mm,precip_today_in));//+rainunits;
-      var precip_rate_mm = Math.round(json.observations[0].metric_si.precipRate*10)/10;
-      var precip_rate_in = Math.round(json.observations[0].metric_si.precipRate/25.4*10)/10;
-      var precip_rate_pws= String(raintouse(rainunits,precip_rate_mm,precip_rate_in));//+rainunits;
-  //    var precip_today_pws = String(Math.round(4.2*100)/100)+'mm';
-  //    var precip_rate_pws= String(Math.round(0.2*100)/100)+'mm';
-      var pressuremb = String(Math.round(json.observations[0].metric_si.pressure));//+'mb';
-      var pressurehg = String(Math.round(json.observations[0].metric_si.pressure /33.8639*10)/10);
-      var pressuretor = String(Math.round(json.observations[0].metric_si.pressure/1.333));
-      var pressureap = String(Math.round(json.observations[0].metric_si.pressure *100));
-      var pressureatm = String(Math.round(json.observations[0].metric_si.pressure/1013*1000)/1000);
-      var pressurepws = String(pressuretouse(pressureunits,pressuremb,pressurehg,pressuretor,pressureap,pressureatm));//+pressureunits;
-
-      localStorage.setItem("OKAPI", 1);
-      console.log("OK API");
-
-      //console.log(minutely);
-      console.log(citypws);
-      console.log(temppws);
-      console.log(windpws);
-      console.log(winddir_numpws);
-      console.log(pwstime);
-      console.log(pressuremb);
-      console.log(pressurehg);
-      console.log(pressuretor);
-      console.log(pressureap);
-      console.log(pressureatm);
-      console.log(pressurepws);
-      console.log(precip_rate_pws);
-      console.log(precip_today_pws);
-
-
-      // Assemble dictionary using our keys
-      var dictionary = {
-        "WeatherTempPWS": temppws,
-        "WeatherWindPWS" : windpws,
-        "WeatherWindRoundPWS" : windroundpws,
-        "WindIconNowPWS":winddir_numpws,
-        "RainTotalTodayPWS":precip_today_pws,
-        "RainRatePWS":precip_rate_pws,
-        "PressurePWS":pressurepws,
-      };
-      // Send to Pebble
-      Pebble.sendAppMessage(dictionary,
-                            function(e) {console.log("Weather from PWS sent to Pebble successfully!");},
-                            function(e) { console.log("Error sending PWS info to Pebble!");}
-                           );
-        });
-    }
-    //else{
-    //  console.log("Aplite, ignore PWS info");
-    //}
-  //}
-
 // Request for DarkSky
 function locationSuccessDS(pos){
   //Request DarkSky
 //  var lat=pos.coords.latitude;
 //  var lon= pos.coords.longitude;
   var settings2 = JSON.parse(localStorage.getItem('clay-settings')) || {};
-
-  var usepws = settings2.UsePWS;
-  if (usepws === undefined || usepws === null)
-  {
-    var aplite = true;
-    console.log("aplite true is" + aplite);
-  }
-  else {
-    var aplite = false;
-    console.log("aplite false is" + aplite);
-  }
-
-
   var manuallat = settings2.Lat;
   var manuallong = settings2.Long;
   if(manuallat != null && manuallat != '' && manuallong != null && manuallong != '' ){
@@ -1128,17 +1012,6 @@ function locationSuccessOWM(pos){
 //  var lon= pos.coords.longitude;
   var settings3 = JSON.parse(localStorage.getItem('clay-settings')) || {};
 
-  var usepws = settings3.UsePWS;
-  if (usepws === undefined || usepws === null)
-  {
-    var aplite = true;
-    console.log("aplite true is" + aplite);
-  }
-  else {
-    var aplite = false;
-    console.log("aplite false is" + aplite);
-  }
-
   var manuallat = settings3.Lat;
   var manuallong = settings3.Long;
   if(manuallat != null && manuallat != '' && manuallong != null && manuallong != '' ){
@@ -1353,7 +1226,7 @@ function locationSuccessOWM(pos){
     console.log(rain60);
     console.log(rain0);
     console.log(rain10);
-    console.log(rain20);
+    console.log(rain20); 
     //console.log(rainn60);
 
 //    console.log(rain_next_hour);
@@ -1447,28 +1320,7 @@ function getinfo() {
   var manuallong = settings4.Long;
   var email=settings4.EmailPMKEY;
   var pin=settings4.PINPMKEY;
-  //var pwsKey=settings4.PWSAPIKEY_User;
-  var usepws = settings4.UsePWS;
-  if (usepws === undefined || usepws === null)
-  {
-    var aplite = true;
-    console.log("aplite true is" + aplite);
-  }
-  else {
-    var aplite = false;
-    console.log("aplite false is" + aplite);
-  }
-  if(!aplite)
-  {
-    var pwsIDraw=settings4.PWSStationID_User;
-    if (pwsIDraw !== undefined)
-      {
-        var pwsID=settings4.PWSStationID_User;
-      } else {
-        var pwsID='';
-      }
-  }
-  //localStorage.setItem("pwsKey", pwsKey);
+
   if (email !== undefined && pin !== undefined) {
     //Request API from pmkey.xyz
     var urlpmk='https://pmkey.xyz/search/?email='+email+"&pin="+pin;
@@ -1491,25 +1343,12 @@ function getinfo() {
                    localStorage.setItem("owmKey", owmKey);
                    localStorage.setItem("dsKey", dsKey);
                    localStorage.setItem("wuKey", wuKey);
-
-                   //localStorage.setItem("pwsKey", wuKey);
                  }
                 );
     }
   }
   var weatherprov=settings4.WeatherProv;
 
-  //suncalcinfo();
-  if(!aplite && pwsID !== null && pwsID !== undefined && pwsID !==''){
-    console.log("Ready from PWS");
-    locationSuccessPWS();
-  }
-  else if(aplite) {
-    console.log("Aplite ignore PWS");
-  }
-  else {
-    console.log("PWS error");
-  }
 
   if (weatherprov=="owm"){
     console.log("Ready from OWM");

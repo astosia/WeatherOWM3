@@ -23,7 +23,11 @@ typedef struct ClaySettings {
   char tempstring[8];
   char temphistring[10];
   int UpSlider;
+  int iconnumbernow;
+  int iconnumberfore;
   int WeatherUnit;
+  bool CurrentOrFore;
+  bool UseForecast;
   char* WindUnit;
 
  // bool Rotate;

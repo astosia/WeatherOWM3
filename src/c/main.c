@@ -15,8 +15,7 @@ static GFont
 FontDate,
 FontTemp,
 FontTempFore,
-FontIcon2,
-FontIcon3
+FontIcon2
 ;
 
 FFont* time_font;
@@ -27,7 +26,7 @@ static Layer * s_canvas;
 static Layer * s_canvas_bt_icon;
 static Layer * s_canvas_qt_icon;
 static Layer * s_picture_bitmap_layer;
-static Layer * s_canvas_top_section; //weather layer
+static Layer * s_canvas_weather; //weather layer
 static GBitmap *s_background_picture;
 
 Layer * time_area_layer;
@@ -96,12 +95,13 @@ static void prv_default_settings(){
   settings.HourColor = GColorBlack;
   settings.WeatherUnit = 0;
   settings.UpSlider = 30;
+  settings.UseForecast = false;
  }
 
 bool BTOn=true;
-bool GPSOn=true;
 bool showForecastWeather = false;
 int s_countdown = 0;
+//int s_countdown_images = 30;
 int s_loop = 0;
 
 //////End Configuration///
@@ -124,17 +124,6 @@ static void bluetooth_callback(bool connected){
   BTOn = connected;
 }
 
-static void update_background_picture() {
-  if (!settings.ALIEN){
-          s_background_picture = gbitmap_create_with_resource (RESOURCE_ID_IMAGE_ALIENHEAD);
-          //APP_LOG(APP_LOG_LEVEL_DEBUG, "should be white");
-  } else {
-          s_background_picture = gbitmap_create_with_resource (RESOURCE_ID_IMAGE_ALIENBLUE);
-          //APP_LOG(APP_LOG_LEVEL_DEBUG, "should be black & blue");
-    }
-}
-
-
 static void bluetooth_vibe_icon (bool connected) {
 
   layer_set_hidden(s_canvas_bt_icon, connected);
@@ -151,36 +140,147 @@ static void quiet_time_icon () {
   }
 }
 
+
+
+static void update_background_picture() {
+
+//if (s_countdown_images == settings.UpSlider){
+//  APP_LOG(APP_LOG_LEVEL_DEBUG, "IconNumberNow is %d", settings.iconnumbernow);
+//  APP_LOG(APP_LOG_LEVEL_DEBUG, "IconNumberFore is %d", settings.iconnumberfore);
+if(!settings.UseForecast){
+  if (!settings.ALIEN ){
+    if(settings.iconnumbernow == 8  || //rain
+       settings.iconnumbernow == 10 || //thunderstorm
+       settings.iconnumbernow == 27 || //night_rain
+       settings.iconnumbernow == 29) //night_thunderstorm
+       {
+    s_background_picture = gbitmap_create_with_resource (RESOURCE_ID_IMAGE_ALIENRAIN);
+      }
+  else if(
+       settings.iconnumbernow == 9  || //snow
+       settings.iconnumbernow == 11 || //sleet
+       settings.iconnumbernow == 12 || //flurries
+       settings.iconnumbernow == 28 || //night_snow
+       settings.iconnumbernow == 30 || //night sleet
+       settings.iconnumbernow == 31) //night_flurries
+      {
+      s_background_picture = gbitmap_create_with_resource (RESOURCE_ID_IMAGE_ALIENSNOW);
+      }
+  else if(
+       settings.iconnumbernow == 3  || //partlycloudy
+       settings.iconnumbernow == 4 || //mostlycloudy
+       settings.iconnumbernow == 7 || //cloudy
+       settings.iconnumbernow == 22 || //nt_partlycloudy
+       settings.iconnumbernow == 23 || //nt_mostlycloudy
+       settings.iconnumbernow == 26) //night_cloudy
+      {
+      s_background_picture = gbitmap_create_with_resource (RESOURCE_ID_IMAGE_ALIENCLOUD);
+      }
+  else {
+    s_background_picture = gbitmap_create_with_resource (RESOURCE_ID_IMAGE_ALIENHEAD);
+          //APP_LOG(APP_LOG_LEVEL_DEBUG, "should be white");
+       }
+  }
+  else if (
+       settings.iconnumbernow == 8  || //rain
+       settings.iconnumbernow == 10 || //thunderstorm
+       settings.iconnumbernow == 27 || //night_rain
+       settings.iconnumbernow == 29 )
+       { //night thunderstorm
+    s_background_picture = gbitmap_create_with_resource (RESOURCE_ID_IMAGE_ALIENRAINBLUE);
+  }
+  else if(
+       settings.iconnumbernow == 9  || //snow
+       settings.iconnumbernow == 11 || //sleet
+       settings.iconnumbernow == 12 || //flurries
+       settings.iconnumbernow == 28 || //night_snow
+       settings.iconnumbernow == 30 || //night sleet
+       settings.iconnumbernow == 31) //night_flurries
+      {
+      s_background_picture = gbitmap_create_with_resource (RESOURCE_ID_IMAGE_ALIENSNOWBLUE);
+      }
+      else if(
+           settings.iconnumbernow == 3  || //partlycloudy
+           settings.iconnumbernow == 4 || //mostlycloudy
+           settings.iconnumbernow == 7 || //cloudy
+           settings.iconnumbernow == 22 || //nt_partlycloudy
+           settings.iconnumbernow == 23 || //nt_mostlycloudy
+           settings.iconnumbernow == 26) //night_cloudy
+          {
+          s_background_picture = gbitmap_create_with_resource (RESOURCE_ID_IMAGE_ALIENCLOUDBLUE);
+          }
+  else
+    {
+    s_background_picture = gbitmap_create_with_resource (RESOURCE_ID_IMAGE_ALIENBLUE);
+          //APP_LOG(APP_LOG_LEVEL_DEBUG, "should be black & blue");
+    }
+}
+else{
+ if (!settings.ALIEN){
+    if(settings.iconnumberfore == 8  || //rain
+       settings.iconnumberfore == 10 || //thunderstorm
+       settings.iconnumberfore == 27 || //night_rain
+       settings.iconnumberfore == 29) //night_thunderstorm
+       {
+    s_background_picture = gbitmap_create_with_resource (RESOURCE_ID_IMAGE_ALIENRAIN);
+      }
+  else if(
+       settings.iconnumberfore == 9  || //snow
+       settings.iconnumberfore == 11 || //sleet
+       settings.iconnumberfore == 12 || //flurries
+       settings.iconnumberfore == 28 || //night_snow
+       settings.iconnumberfore == 30 || //night sleet
+       settings.iconnumberfore == 31) //night_flurries
+      {
+      s_background_picture = gbitmap_create_with_resource (RESOURCE_ID_IMAGE_ALIENSNOW);
+      }
+  else {
+    s_background_picture = gbitmap_create_with_resource (RESOURCE_ID_IMAGE_ALIENHEAD);
+          //APP_LOG(APP_LOG_LEVEL_DEBUG, "should be white");
+       }
+  }
+  else if (
+       settings.iconnumberfore == 8  || //rain
+       settings.iconnumberfore == 10 || //thunderstorm
+       settings.iconnumberfore == 27 || //night_rain
+       settings.iconnumberfore == 29 )
+       { //night thunderstorm
+    s_background_picture = gbitmap_create_with_resource (RESOURCE_ID_IMAGE_ALIENRAINBLUE);
+  }
+  else if(
+       settings.iconnumberfore == 9  || //snow
+       settings.iconnumberfore == 11 || //sleet
+       settings.iconnumberfore == 12 || //flurries
+       settings.iconnumberfore == 28 || //night_snow
+       settings.iconnumberfore == 30 || //night sleet
+       settings.iconnumberfore == 31) //night_flurries
+      {
+      s_background_picture = gbitmap_create_with_resource (RESOURCE_ID_IMAGE_ALIENSNOWBLUE);
+      }
+  else
+    {
+    s_background_picture = gbitmap_create_with_resource (RESOURCE_ID_IMAGE_ALIENBLUE);
+          //APP_LOG(APP_LOG_LEVEL_DEBUG, "should be black & blue");
+    }
+}
+
+//}
+}
+
 static void accel_tap_handler(AccelAxisType axis, int32_t direction) {
   // A tap event occured
   showForecastWeather = !showForecastWeather;
-  layer_mark_dirty (s_canvas_top_section);
+  layer_mark_dirty (s_canvas_weather);
 }
 
-#ifdef PBL_MICROPHONE
 void layer_update_proc_background (Layer * back_layer, GContext * ctx){
-
   gbitmap_destroy(s_background_picture);
   update_background_picture();
   GRect bitmap_bounds = gbitmap_get_bounds(s_background_picture);
   graphics_context_set_compositing_mode(ctx, GCompOpSet);
   graphics_draw_bitmap_in_rect(ctx, s_background_picture, bitmap_bounds);
-
+//  gbitmap_destroy(s_background_picture);
 }
-
-#else
-
-void layer_update_proc_background (Layer * back_layer, GContext * ctx){
-  gbitmap_destroy(s_background_picture);
-  update_background_picture();
-
-  GRect bitmap_bounds = gbitmap_get_bounds(s_background_picture);
-  GRect Bitmaprect = GRect(34, 2, bitmap_bounds.size.w, bitmap_bounds.size.h);
-  graphics_context_set_compositing_mode(ctx, GCompOpSet);
-  graphics_draw_bitmap_in_rect(ctx, s_background_picture, Bitmaprect);
-
-}
-#endif
 
 void update_time_area_layer(Layer *l, GContext* ctx7) {
   // check layer bounds
@@ -418,6 +518,16 @@ static void prv_inbox_received_handler(DictionaryIterator * iter, void * context
         snprintf(settings.iconnowstring,sizeof(settings.iconnowstring),"%s",weather_conditions[(int)iconnow_tuple->value->int32]);
     }
 
+    Tuple * iconnumbernow_tuple = dict_find(iter, MESSAGE_KEY_IconNow);
+      if (iconnumbernow_tuple){
+      settings.iconnumbernow = (int)iconnumbernow_tuple->value->int32;
+    }
+
+    Tuple * iconnumberfore_tuple = dict_find(iter, MESSAGE_KEY_IconFore);
+      if (iconnumberfore_tuple){
+      settings.iconnumberfore = (int)iconnumberfore_tuple->value->int32;
+    }
+
     Tuple * iconfore_tuple = dict_find(iter, MESSAGE_KEY_IconFore);
     if (iconfore_tuple){
       snprintf(settings.iconforestring,sizeof(settings.iconforestring),"%s",weather_conditions[(int)iconfore_tuple->value->int32]);
@@ -428,6 +538,18 @@ static void prv_inbox_received_handler(DictionaryIterator * iter, void * context
       settings.UpSlider = (int) frequpdate -> value -> int32;
       //Restart the counter
       s_countdown = settings.UpSlider;
+      //s_countdown_images = settings.UpSlider + 1;
+    }
+
+    Tuple * currfore_t = dict_find(iter, MESSAGE_KEY_CurrentOrFore);
+    if (currfore_t){
+      if (currfore_t -> value -> int32 == 0){
+        settings.UseForecast = false;
+        APP_LOG(APP_LOG_LEVEL_DEBUG, "Use current for images");
+      } else {
+        settings.UseForecast = true;
+        APP_LOG(APP_LOG_LEVEL_DEBUG, "Use forecast for images");
+      }
     }
 
 // Alien choice
@@ -484,12 +606,14 @@ static void prv_inbox_received_handler(DictionaryIterator * iter, void * context
     }
 
   //Update for config changes
+
   layer_mark_dirty(s_picture_bitmap_layer);
   layer_mark_dirty(s_canvas);
-  layer_mark_dirty(s_canvas_top_section);
+  layer_mark_dirty(s_canvas_weather);
   layer_mark_dirty(s_canvas_bt_icon);
   layer_mark_dirty(s_canvas_qt_icon);
   layer_mark_dirty(time_area_layer);
+
 
   // Save the new settings to persistent storage
   prv_save_settings();
@@ -506,26 +630,30 @@ static void window_load(Window * window){
     layer_set_update_proc (s_picture_bitmap_layer, layer_update_proc_background);
     layer_add_child(window_layer,s_picture_bitmap_layer);
 
+//add day date, battery and dividers
   s_canvas = layer_create(bounds4);
     layer_set_update_proc(s_canvas, layer_update_proc);
     layer_add_child(window_layer, s_canvas);
 
+//add bluetooth icon
   s_canvas_bt_icon = layer_create(bounds4);
     layer_set_update_proc (s_canvas_bt_icon, layer_update_proc_bt);
     layer_add_child(window_layer, s_canvas_bt_icon);
 
+// add quiet time icon
   s_canvas_qt_icon = layer_create(bounds4);
     layer_set_update_proc (s_canvas_qt_icon, layer_update_proc_qt);
     layer_add_child(window_layer, s_canvas_qt_icon);
 
+// add time layer
   time_area_layer = layer_create(bounds4);
     layer_add_child(window_get_root_layer(s_window), time_area_layer);
     layer_set_update_proc(time_area_layer, update_time_area_layer);
 
-//add weather layer
-  s_canvas_top_section = layer_create(bounds4);
-      layer_set_update_proc(s_canvas_top_section, layer_update_proc_weather);
-      layer_add_child(window_layer, s_canvas_top_section);
+//add weather (temperature) info layer
+  s_canvas_weather = layer_create(bounds4);
+      layer_set_update_proc(s_canvas_weather, layer_update_proc_weather);
+      layer_add_child(window_layer, s_canvas_weather);
 
 }
 
@@ -537,10 +665,9 @@ static void window_unload(Window * window){
   layer_destroy(time_area_layer);
   layer_destroy(s_canvas_bt_icon);
   layer_destroy(s_canvas_qt_icon);
-  layer_destroy(s_canvas_top_section);
+  layer_destroy(s_canvas_weather);
   window_destroy(s_window);
   fonts_unload_custom_font(FontIcon2);
-  fonts_unload_custom_font(FontIcon3);
   ffont_destroy(time_font);
 }
 
@@ -562,13 +689,10 @@ void main_window_update(int hours, int minutes, int weekday, int day, int month)
 
   //layer_mark_dirty(s_picture_bitmap_layer);
   layer_mark_dirty(s_canvas);
-  layer_mark_dirty(s_canvas_top_section);
+  //layer_mark_dirty(s_canvas_weather);
   layer_mark_dirty(s_canvas_bt_icon);
   layer_mark_dirty(s_canvas_qt_icon);
   layer_mark_dirty(time_area_layer);
-
-
- /////// update_rotation(); ///use this one
 
 }
 
@@ -581,12 +705,14 @@ static void tick_handler(struct tm * time_now, TimeUnits changed){
   if (s_countdown == 0){
     //Reset
     s_countdown = settings.UpSlider;
+  //  s_countdown_images = settings.UpSlider + 1;
   } else{
     s_countdown = s_countdown - 1;
+  //  s_countdown_images = s_countdown_images -1;
   }
-  APP_LOG(APP_LOG_LEVEL_DEBUG, "Countdown to update %d loop is %d, GPS is %d", s_countdown, s_loop, GPSOn);
+  APP_LOG(APP_LOG_LEVEL_DEBUG, "Countdown to update %d loop is %d", s_countdown, s_loop);
 
-  if (s_countdown == 0 || s_countdown == 5){
+  if (s_countdown == 0){
       APP_LOG(APP_LOG_LEVEL_DEBUG, "countdown is 0, updated weather at %d", time_now -> tm_min);
       s_loop = 0;
       // Begin dictionary
@@ -597,24 +723,9 @@ static void tick_handler(struct tm * time_now, TimeUnits changed){
       // Send the message!
       app_message_outbox_send();
 
+      layer_mark_dirty(s_picture_bitmap_layer);
+  //    update_background_picture();
   }
-
-  //If GPS was off request weather every 15 minutes
-    if (!GPSOn){
-        if (settings.UpSlider > 15){
-          if (s_countdown % 15 == 0){
-            APP_LOG(APP_LOG_LEVEL_DEBUG, "Attempt to request GPS on %d", time_now -> tm_min);
-            s_loop = 0;
-            // Begin dictionary
-            DictionaryIterator * iter;
-            app_message_outbox_begin( & iter);
-            // Add a key-value pair
-            dict_write_uint8(iter, 0, 0);
-            // Send the message!
-            app_message_outbox_send();
-          }
-        }
-      }
 
     //onreconnection(BTOn, connection_service_peek_pebble_app_connection());
     if (!BTOn && connection_service_peek_pebble_app_connection()){
@@ -627,6 +738,9 @@ static void tick_handler(struct tm * time_now, TimeUnits changed){
       dict_write_uint8(iter, 0, 0);
       // Send the message!
       app_message_outbox_send();
+
+    //  layer_mark_dirty(s_picture_bitmap_layer);
+    //  update_background_picture();
     }
 
     bluetooth_callback(connection_service_peek_pebble_app_connection());
@@ -636,11 +750,10 @@ static void tick_handler(struct tm * time_now, TimeUnits changed){
 
 
 static void init(){
-//set background color to match bitmap
-//  window_set_background_color(s_window, GColorBlack);
 
   prv_load_settings();
   // Listen for AppMessages
+  //s_countdown_images = settings.UpSlider + 1;
   s_countdown = settings.UpSlider;
   s_loop = 0;
   time_t now = time(NULL);
@@ -652,22 +765,16 @@ static void init(){
   s_month=t->tm_mon;
   //Register and open
   app_message_register_inbox_received(prv_inbox_received_handler);
-  app_message_open(512, 512);
+  app_message_open(1536, 1536);
   // Load Fonts
-  update_background_picture();
+//  update_background_picture();
   time_font =  ffont_create_from_resource(RESOURCE_ID_FFONT_GRAM);
  //  time_font =  ffont_create_from_resource(RESOURCE_ID_FONT_STEELFISH);
  // time_font = ffont_create_from_resource(RESOURCE_ID_FONT_DINCONBOLD);
   FontDate = PBL_IF_ROUND_ELSE(fonts_get_system_font(FONT_KEY_GOTHIC_24),fonts_get_system_font(FONT_KEY_GOTHIC_24_BOLD));
   FontTemp = fonts_get_system_font(FONT_KEY_GOTHIC_24_BOLD);
   FontTempFore = PBL_IF_ROUND_ELSE(fonts_get_system_font(FONT_KEY_GOTHIC_18),fonts_get_system_font(FONT_KEY_GOTHIC_24_BOLD));
-
-  //FontAMPM = fonts_get_system_font(FONT_KEY_GOTHIC_24_BOLD);
-  //FontDivider = fonts_get_system_font(FONT_KEY_BITHAM_42_BOLD);
-  //FontBattery= fonts_get_system_font(PBL_IF_ROUND_ELSE(FONT_KEY_GOTHIC_14,FONT_KEY_GOTHIC_18_BOLD));
-  //FontIcon = fonts_load_custom_font(resource_get_handle(RESOURCE_ID_FONT_WEATHERICONS_20));
   FontIcon2 = fonts_load_custom_font(resource_get_handle(RESOURCE_ID_FONT_DRIPICONS_16));
-  FontIcon3 = fonts_load_custom_font(resource_get_handle(RESOURCE_ID_FONT_DRIPICONS_18));
 
   main_window_push();
   // Register with Event Services
@@ -678,12 +785,11 @@ static void init(){
   });
   bluetooth_vibe_icon(connection_service_peek_pebble_app_connection());
   accel_tap_service_subscribe(accel_tap_handler);
- // handle_battery(battery_state_service_peek());
+
 }
 static void deinit(){
   tick_timer_service_unsubscribe();
   app_message_deregister_callbacks(); //Destroy the callbacks for clean up
-//   tick_timer_service_unsubscribe();
   battery_state_service_unsubscribe();
   connection_service_unsubscribe();
   accel_tap_service_unsubscribe();

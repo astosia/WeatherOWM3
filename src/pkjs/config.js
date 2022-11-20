@@ -109,8 +109,16 @@ module.exports = [
               },
               {
                 "type": "toggle",
+                "messageKey": "CurrentOrFore",
+                "label": "Current/Forecast conditions picture",
+                "description": "Shows weather images based on either current (toggle is off) or forecast (toggle is on) conditions",
+                "defaultValue": false,
+              },
+              {
+                "type": "toggle",
                 "messageKey": "WeatherUnit",
-                "label": "Temperature in Fahrenheit",
+                "label": "Temperature in Celcius/Fahrenheit",
+                "description": "toggle off for C, on for F",
                 "defaultValue": false,
               },
               {
