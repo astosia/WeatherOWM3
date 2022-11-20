@@ -15,7 +15,7 @@ typedef struct ClaySettings {
   GColor Text7Color;
   GColor HourColor;
   GColor MinColor;
-  int ALIEN;
+  bool ALIEN;
 
  // bool Rotate;
  // bool RightLeft;

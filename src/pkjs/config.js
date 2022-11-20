@@ -12,20 +12,20 @@ module.exports = [
         "defaultValue": "Theme settings"
       },
       {
-        "type": "select",
+        "type": "toggle",
         "messageKey": "ALIEN",
-        "defaultValue": 1,
-        "label": "Theme/Alien Colour",
-        "options": [
+        "defaultValue": false,
+        "label": "Light/Dark Alien Theme"
+      /*  "options": [
           {
             "label": "White",
-            "value": 1
+            "value": "w"
           },
           {
             "label": "Blue and Black",
-            "value": 2
+            "value": "b"
           }
-        ]
+        ]*/
       },
     /*  {
         "type": "color",
@@ -38,15 +38,17 @@ module.exports = [
         "type": "color",
         "messageKey": "HourColor",
         "defaultValue": "0x000000",
-        "label": "Time Colour"
+        "label": "Time Colour",
+        "allowGray":true
       },
       {
         "type": "color",
         "messageKey": "Text3Color",
         "defaultValue": "0x000000",
-        "label": "Day of the week Colour"
+        "label": "Date Colour",
+        "allowGray":true
       },
-      {
+/*      {
         "type": "color",
         "messageKey": "Text5Color",
         "defaultValue": "0x000000",
@@ -57,18 +59,20 @@ module.exports = [
         "messageKey": "Text6Color",
         "defaultValue": "0x000000",
         "label": "Date Text Colour"
-      },
+      },*/
       {
         "type": "color",
         "messageKey": "FrameColor1",
         "defaultValue": "0xFFFFFF",
-        "label": "Divider Bar Colour"
+        "label": "Divider Bar Colour",
+        "allowGray":true
       },
        {
         "type": "color",
         "messageKey": "Text2Color",
         "defaultValue": "0x000000",
-        "label": "Battery Bar Colour"
+        "label": "Battery Bar Colour",
+        "allowGray":true
       },
       {
         "type": "color",

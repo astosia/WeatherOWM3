@@ -52,7 +52,7 @@ static void prv_default_settings(){
   settings.Text4Color = GColorBlack;
   settings.Text5Color = GColorBlack;
   settings.Text6Color = GColorBlack;
-  settings.ALIEN = 49;
+  settings.ALIEN = false;
 //  settings.Text7Color = GColorWhite;
   settings.HourColor = GColorBlack;
 
@@ -84,16 +84,16 @@ static void bluetooth_callback(bool connected){
 }
 
 static void update_background_picture() {
-  if ((settings.ALIEN == 49)){
+  if (!settings.ALIEN){
           s_background_picture = gbitmap_create_with_resource (RESOURCE_ID_IMAGE_ALIENHEAD);
-          APP_LOG(APP_LOG_LEVEL_DEBUG, "ALIEN %d", settings.ALIEN);
+        //  APP_LOG(APP_LOG_LEVEL_DEBUG, "ALIEN %s", settings.ALIEN);
           APP_LOG(APP_LOG_LEVEL_DEBUG, "should be white");
   //  } else if ((settings.Invert == true) && (IsNightNow == false)){
   //    IsInvertedNow = true;
   //          s_background_picture = gbitmap_create_with_resource (RESOURCE_ID_IMAGE_BACKGROUNDINV);
     } else {
           s_background_picture = gbitmap_create_with_resource (RESOURCE_ID_IMAGE_ALIENBLUE);
-          APP_LOG(APP_LOG_LEVEL_DEBUG, "ALIEN %d", settings.ALIEN);
+        //  APP_LOG(APP_LOG_LEVEL_DEBUG, "ALIEN %s", settings.ALIEN);
           APP_LOG(APP_LOG_LEVEL_DEBUG, "should be black & blue");
     }
 }
@@ -120,7 +120,7 @@ void layer_update_proc_background (Layer * back_layer, GContext * ctx){
 
   gbitmap_destroy(s_background_picture);
   update_background_picture();
-  APP_LOG(APP_LOG_LEVEL_DEBUG, "Alien in layer update proc %d", settings.ALIEN);
+  //APP_LOG(APP_LOG_LEVEL_DEBUG, "Alien in layer update proc %s", settings.ALIEN);
   GRect bitmap_bounds = gbitmap_get_bounds(s_background_picture);
   graphics_context_set_compositing_mode(ctx, GCompOpSet);
   graphics_draw_bitmap_in_rect(ctx, s_background_picture, bitmap_bounds);
@@ -135,7 +135,7 @@ void layer_update_proc_background (Layer * back_layer, GContext * ctx){
 
   gbitmap_destroy(s_background_picture);
   update_background_picture();
-  APP_LOG(APP_LOG_LEVEL_DEBUG, "Alien in layer update proc %d", settings.ALIEN);
+  //APP_LOG(APP_LOG_LEVEL_DEBUG, "Alien in layer update proc %s", settings.ALIEN);
 
   /*  if ((settings.ALIEN == 49)){
     graphics_context_set_fill_color(ctx,GColorWhite);
@@ -255,22 +255,28 @@ static void layer_update_proc(Layer * layer1, GContext * ctx){
   graphics_context_set_fill_color(ctx, settings.FrameColor1);
   graphics_fill_rect(ctx, MediumBand,4,GCornersAll);*/
 
+  GRect VerticalDivierRect =
+      (PBL_IF_ROUND_ELSE(
+        GRect(102,144+2,2,180-144),
+        GRect(72,144+2,2,168-144)));
 
- GRect DateRect =
+
+ GRect DayofWeekRect =
   (PBL_IF_ROUND_ELSE(
-      GRect(0, 140, 48, 16),
-      GRect(0, 140, 48, 16)));
+      GRect(0, 140, 100, 16),
+      GRect(0, 140, 72, 16)));
 
-  GRect DateRect2 =
+  /*GRect DateRect =
     (PBL_IF_ROUND_ELSE(
       GRect(52, 140, 40, 16),
       GRect(52, 140, 40, 16)));
 
-  GRect MonthRect =
+
+  GRect MonthNameRect =
     (PBL_IF_ROUND_ELSE(
       GRect(96, 140, 40, 16),
       GRect(96, 140, 48, 16)));
-
+*/
   GRect BatteryRect =
       (PBL_IF_ROUND_ELSE(
         GRect(0,144,180,2),
@@ -296,9 +302,10 @@ static void layer_update_proc(Layer * layer1, GContext * ctx){
     snprintf(battperc, sizeof(battperc), "%d", s_battery_level);
     strcat(battperc, "%");
 
-  // Draw the battery bar background
+  // Draw the battery bar & divider bar backgrounds
   graphics_context_set_fill_color(ctx, settings.FrameColor1);// GColorBlack);
   graphics_fill_rect(ctx, BatteryRect, 0, GCornerNone);
+  graphics_fill_rect(ctx, VerticalDivierRect, 0, GCornerNone);
 
   // Draw the battery bar
   graphics_context_set_fill_color(ctx, settings.Text2Color);
@@ -313,16 +320,18 @@ static void layer_update_proc(Layer * layer1, GContext * ctx){
   char datenow[10];
   snprintf(datenow, sizeof(datenow), "%s", datedraw);
 
-  char monthdraw[10];
+/*  char monthdraw[10];
   fetchmonth (s_month, sys_locale, monthdraw);
   char monthnow[10];
   snprintf(monthnow, sizeof(monthnow), "%s", monthdraw);
-
+*/
   int daydraw;
   daydraw = s_day;
   char daynow[8];
   snprintf(daynow, sizeof(daynow), "%02d", daydraw);
 
+  char daydate[9];
+  snprintf(daydate, sizeof (daydate), "%s %02d", datedraw,daydraw);
 
   // Concatenate date
   //strcat(/*datenow,*/ convertday);
@@ -342,13 +351,16 @@ static void layer_update_proc(Layer * layer1, GContext * ctx){
   //graphics_draw_text(ctx, ampm, FontAMPM, ampmRect, GTextOverflowModeWordWrap, PBL_IF_ROUND_ELSE(GTextAlignmentCenter, GTextAlignmentRight), NULL);
 
   graphics_context_set_text_color(ctx, settings.Text3Color);
-  graphics_draw_text(ctx, datenow, FontDate, DateRect, GTextOverflowModeWordWrap, PBL_IF_ROUND_ELSE(GTextAlignmentCenter,GTextAlignmentRight), NULL);
+  //graphics_draw_text(ctx, datenow, FontDate, DayofWeekRect, GTextOverflowModeWordWrap, PBL_IF_ROUND_ELSE(GTextAlignmentCenter,GTextAlignmentRight), NULL);
+  graphics_draw_text(ctx, daydate, FontDate, DayofWeekRect, GTextOverflowModeWordWrap, PBL_IF_ROUND_ELSE(GTextAlignmentRight,GTextAlignmentCenter), NULL);
 
-  graphics_context_set_text_color(ctx, settings.Text6Color);
-  graphics_draw_text(ctx, daynow, FontDate2, DateRect2, GTextOverflowModeWordWrap, PBL_IF_ROUND_ELSE(GTextAlignmentCenter,GTextAlignmentCenter), NULL);
 
-  graphics_context_set_text_color(ctx, settings.Text5Color);
-  graphics_draw_text(ctx, monthnow, FontDate, MonthRect, GTextOverflowModeWordWrap, PBL_IF_ROUND_ELSE(GTextAlignmentCenter,GTextAlignmentLeft), NULL);
+
+  //graphics_context_set_text_color(ctx, settings.Text6Color);
+  //graphics_draw_text(ctx, daynow, FontDate2, DateRect, GTextOverflowModeWordWrap, PBL_IF_ROUND_ELSE(GTextAlignmentCenter,GTextAlignmentCenter), NULL);
+
+  //graphics_context_set_text_color(ctx, settings.Text5Color);
+  //graphics_draw_text(ctx, monthnow, FontDate, MonthNameRect, GTextOverflowModeWordWrap, PBL_IF_ROUND_ELSE(GTextAlignmentCenter,GTextAlignmentLeft), NULL);
 
   }
 
@@ -407,10 +419,21 @@ static void prv_inbox_received_handler(DictionaryIterator * iter, void * context
     settings.Back1Color = GColorFromHEX(bg1_color_t-> value -> int32);
   }*/
 
-  Tuple * alien_t = dict_find(iter, MESSAGE_KEY_ALIEN);
+  /*Tuple * alien_t = dict_find(iter, MESSAGE_KEY_ALIEN);
   if (alien_t){
     settings.ALIEN = (int) alien_t -> value -> int32;
     APP_LOG(APP_LOG_LEVEL_DEBUG, "Alien tuple %d", settings.ALIEN);
+  }*/
+
+  Tuple * alien_t = dict_find(iter, MESSAGE_KEY_ALIEN);
+  if (alien_t){
+    if (alien_t -> value -> int32 == 0){
+      settings.ALIEN = false;
+        APP_LOG(APP_LOG_LEVEL_DEBUG, "White Alien");
+      } else {
+      settings.ALIEN = true;
+        APP_LOG(APP_LOG_LEVEL_DEBUG, "Black&Blue Alien");
+      }
   }
 
 
