@@ -25,7 +25,16 @@
             "Text4Color",
             "Text5Color",
             "FrameColor1",
-            "Text6Color"
+            "Text6Color",
+            "WeatherUnit",
+            "WeatherProv",
+            "UpSlider",
+            "APIKEY_User",
+            "PINPMKEY",
+            "IconNow",
+            "IconFore",
+            "TempFore",
+            "WeatherTemp"
         ],
         "projectType": "native",
         "resources": {
@@ -68,6 +77,16 @@
                 {
                     "file": "images/alien1clearblue.png",
                     "name": "IMAGE_ALIENBLUE",
+                    "type": "png"
+                },
+                {
+                    "file": "images/alien1rain.png",
+                    "name": "IMAGE_ALIENRAIN",
+                    "type": "png"
+                },
+                {
+                    "file": "images/alien1rainblue.png",
+                    "name": "IMAGE_ALIENRAINBLUE",
                     "type": "png"
                 },
                 {
