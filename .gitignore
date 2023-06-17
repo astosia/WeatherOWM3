@@ -1,6 +1,5 @@
 #ignore build files & other stuff
 node_modules/
-Screenshots/
 build/
 package-lock.json
 .lock-waf_linux2_build
