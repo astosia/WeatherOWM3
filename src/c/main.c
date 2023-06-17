@@ -19,64 +19,42 @@ FontIcon2
 ;
 
 FFont* time_font;
+FFont* weather_font;
 
 static Window * s_window;
 
+static Layer * s_canvas_background;
 static Layer * s_canvas;
 static Layer * s_canvas_bt_icon;
 static Layer * s_canvas_qt_icon;
-static Layer * s_picture_bitmap_layer;
 static Layer * s_canvas_weather; //weather layer
-static GBitmap *s_background_picture;
+//static Layer  *s_background_picture;
 
 Layer * time_area_layer;
+Layer * weather_area_layer;
 
 static int s_hours, s_minutes, s_weekday, s_day, s_month;
 
 static char* weather_conditions[] = {
-    "\U0000F07B", // 'unknown': 0,
-    "\U0000F00D", // 'clear': 1,
-    "\U0000F00D", // 'sunny': 2,
-    "\U0000F002", // 'partlycloudy': 3,
-    "\U0000F041", // 'mostlycloudy': 4,
-    "\U0000F00C", // 'mostlysunny': 5,
-    "\U0000F002", // 'partlysunny': 6,
-    "\U0000F013", // 'cloudy': 7,
-    "\U0000F019", // 'rain': 8,
-    "\U0000F01B", // 'snow': 9,
-    "\U0000F01D", // 'tstorms': 10,
-    "\U0000F0b5", // 'sleat': 11,
-    "\U0000F00A", // 'flurries': 12,
-    "\U0000F0b6", // 'hazy': 13,
-    "\U0000F01D", // 'chancetstorms': 14,
-    "\U0000F01B", // 'chancesnow': 15,
-    "\U0000F0b5", // 'chancesleat': 16,
-    "\U0000F008", // 'chancerain': 17,
-    "\U0000F01B", // 'chanceflurries': 18,
-    "\U0000F07B", // 'nt_unknown': 19,
-    "\U0000F02E", // 'nt_clear': 20,
-    "\U0000F02E", // 'nt_sunny': 21,
-    "\U0000F083", // 'nt_partlycloudy': 22,
-    "\U0000F086", // 'nt_mostlycloudy': 23,
-    "\U0000F081", // 'nt_mostlysunny': 24,
-    "\U0000F086", // 'nt_partlysunny': 25,
-    "\U0000F013", // 'nt_cloudy': 26,
-    "\U0000F019", // 'nt_rain': 27,
-    "\U0000F01B", // 'nt_snow': 28,
-    "\U0000F01D", // 'nt_tstorms': 29,
-    "\U0000F0b5", // 'nt_sleat': 30,
-    "\U0000F038", // 'nt_flurries': 31,
-    "\U0000F04A", // 'nt_hazy': 32,
-    "\U0000F01D", // 'nt_chancetstorms': 33,
-    "\U0000F038", // 'nt_chancesnow': 34,
-    "\U0000F0B3", // 'nt_chancesleat': 35,
-    "\U0000F036", // 'nt_chancerain': 36,
-    "\U0000F038", // 'nt_chanceflurries': 37,
-    "\U0000F003", // 'fog': 38,
-    "\U0000F04A", // 'nt_fog': 39,
-    "\U0000F050", // 'strong wind': 40,
-    "\U0000F015", // 'hail': 41,
-    "\U0000F056", // 'tornado': 42,
+  "\U0000F07B", // 'unknown': 0,
+  "\U0000F00D", // 'clear': 1,
+  "\U0000F00C", // 'fewclouds': 2,
+  "\U0000F041", // 'scattered clouds': 3,
+  "\U0000F013", // 'brokenclouds': 4,
+  "\U0000F019", // 'shower rain': 5,
+  "\U0000F008", // 'rain': 6,
+  "\U0000F076", // 'snow': 7,
+  "\U0000F016", // 'tstorms': 8,
+  "\U0000F021", // 'mist': 9,
+  "\U0000F02E", // 'nt_clear': 11,
+  "\U0000F081", // 'nt_few clouds': 12,
+  "\U0000F086", // 'nt_scattered clouds': 13,
+  "\U0000F013", // 'nt_broken clouds' : 14
+  "\U0000F019", // 'nt_shower rain': 15,
+  "\U0000F036", // 'nt_rain': 16,
+  "\U0000F076", // 'nt_snow': 17,
+  "\U0000F016", // 'nt_tstorms': 18,
+  "\U0000F021", // 'nt_mist': 19,
 };
 //////Init Configuration///
 //Init Clay
@@ -84,15 +62,13 @@ ClaySettings settings;
 // Initialize the default settings
 static void prv_default_settings(){
 //settings.Back1Color = GColorBlack;
-  settings.FrameColor1 = GColorWhite;
-  settings.Text1Color = GColorBlack;
-  settings.Text2Color = GColorBlack;
-  settings.Text3Color = GColorBlack;
-  settings.Text4Color = GColorBlack;
-  settings.Text5Color = GColorBlack;
-  settings.Text6Color = GColorBlack;
-  settings.ALIEN = false;
-  settings.HourColor = GColorBlack;
+  settings.Back1Color = GColorBlack;
+  settings.FrameColor1 = GColorWhite; //divider bar color
+  settings.Text2Color = GColorBlack; //Battery Bar Colour
+  settings.Text3Color = GColorWhite; //Date & Temperature Colour
+  settings.Text4Color = GColorWhite; //Quiet Time & BT icon colour
+  settings.Text7Color = GColorWhite; //weathericon colour
+  settings.HourColor = GColorWhite; //time colour
   settings.WeatherUnit = 0;
   settings.UpSlider = 30;
   settings.UseForecast = false;
@@ -140,133 +116,6 @@ static void quiet_time_icon () {
   }
 }
 
-
-
-static void update_background_picture() {
-
-//if (s_countdown_images == settings.UpSlider){
-//  APP_LOG(APP_LOG_LEVEL_DEBUG, "IconNumberNow is %d", settings.iconnumbernow);
-//  APP_LOG(APP_LOG_LEVEL_DEBUG, "IconNumberFore is %d", settings.iconnumberfore);
-if(!settings.UseForecast){
-  if (!settings.ALIEN ){
-    if(settings.iconnumbernow == 8  || //rain
-       settings.iconnumbernow == 10 || //thunderstorm
-       settings.iconnumbernow == 27 || //night_rain
-       settings.iconnumbernow == 29) //night_thunderstorm
-       {
-    s_background_picture = gbitmap_create_with_resource (RESOURCE_ID_IMAGE_ALIENRAIN);
-      }
-  else if(
-       settings.iconnumbernow == 9  || //snow
-       settings.iconnumbernow == 11 || //sleet
-       settings.iconnumbernow == 12 || //flurries
-       settings.iconnumbernow == 28 || //night_snow
-       settings.iconnumbernow == 30 || //night sleet
-       settings.iconnumbernow == 31) //night_flurries
-      {
-      s_background_picture = gbitmap_create_with_resource (RESOURCE_ID_IMAGE_ALIENSNOW);
-      }
-  else if(
-       settings.iconnumbernow == 3  || //partlycloudy
-       settings.iconnumbernow == 4 || //mostlycloudy
-       settings.iconnumbernow == 7 || //cloudy
-       settings.iconnumbernow == 22 || //nt_partlycloudy
-       settings.iconnumbernow == 23 || //nt_mostlycloudy
-       settings.iconnumbernow == 26) //night_cloudy
-      {
-      s_background_picture = gbitmap_create_with_resource (RESOURCE_ID_IMAGE_ALIENCLOUD);
-      }
-  else {
-    s_background_picture = gbitmap_create_with_resource (RESOURCE_ID_IMAGE_ALIENHEAD);
-          //APP_LOG(APP_LOG_LEVEL_DEBUG, "should be white");
-       }
-  }
-  else if (
-       settings.iconnumbernow == 8  || //rain
-       settings.iconnumbernow == 10 || //thunderstorm
-       settings.iconnumbernow == 27 || //night_rain
-       settings.iconnumbernow == 29 )
-       { //night thunderstorm
-    s_background_picture = gbitmap_create_with_resource (RESOURCE_ID_IMAGE_ALIENRAINBLUE);
-  }
-  else if(
-       settings.iconnumbernow == 9  || //snow
-       settings.iconnumbernow == 11 || //sleet
-       settings.iconnumbernow == 12 || //flurries
-       settings.iconnumbernow == 28 || //night_snow
-       settings.iconnumbernow == 30 || //night sleet
-       settings.iconnumbernow == 31) //night_flurries
-      {
-      s_background_picture = gbitmap_create_with_resource (RESOURCE_ID_IMAGE_ALIENSNOWBLUE);
-      }
-      else if(
-           settings.iconnumbernow == 3  || //partlycloudy
-           settings.iconnumbernow == 4 || //mostlycloudy
-           settings.iconnumbernow == 7 || //cloudy
-           settings.iconnumbernow == 22 || //nt_partlycloudy
-           settings.iconnumbernow == 23 || //nt_mostlycloudy
-           settings.iconnumbernow == 26) //night_cloudy
-          {
-          s_background_picture = gbitmap_create_with_resource (RESOURCE_ID_IMAGE_ALIENCLOUDBLUE);
-          }
-  else
-    {
-    s_background_picture = gbitmap_create_with_resource (RESOURCE_ID_IMAGE_ALIENBLUE);
-          //APP_LOG(APP_LOG_LEVEL_DEBUG, "should be black & blue");
-    }
-}
-else{
- if (!settings.ALIEN){
-    if(settings.iconnumberfore == 8  || //rain
-       settings.iconnumberfore == 10 || //thunderstorm
-       settings.iconnumberfore == 27 || //night_rain
-       settings.iconnumberfore == 29) //night_thunderstorm
-       {
-    s_background_picture = gbitmap_create_with_resource (RESOURCE_ID_IMAGE_ALIENRAIN);
-      }
-  else if(
-       settings.iconnumberfore == 9  || //snow
-       settings.iconnumberfore == 11 || //sleet
-       settings.iconnumberfore == 12 || //flurries
-       settings.iconnumberfore == 28 || //night_snow
-       settings.iconnumberfore == 30 || //night sleet
-       settings.iconnumberfore == 31) //night_flurries
-      {
-      s_background_picture = gbitmap_create_with_resource (RESOURCE_ID_IMAGE_ALIENSNOW);
-      }
-  else {
-    s_background_picture = gbitmap_create_with_resource (RESOURCE_ID_IMAGE_ALIENHEAD);
-          //APP_LOG(APP_LOG_LEVEL_DEBUG, "should be white");
-       }
-  }
-  else if (
-       settings.iconnumberfore == 8  || //rain
-       settings.iconnumberfore == 10 || //thunderstorm
-       settings.iconnumberfore == 27 || //night_rain
-       settings.iconnumberfore == 29 )
-       { //night thunderstorm
-    s_background_picture = gbitmap_create_with_resource (RESOURCE_ID_IMAGE_ALIENRAINBLUE);
-  }
-  else if(
-       settings.iconnumberfore == 9  || //snow
-       settings.iconnumberfore == 11 || //sleet
-       settings.iconnumberfore == 12 || //flurries
-       settings.iconnumberfore == 28 || //night_snow
-       settings.iconnumberfore == 30 || //night sleet
-       settings.iconnumberfore == 31) //night_flurries
-      {
-      s_background_picture = gbitmap_create_with_resource (RESOURCE_ID_IMAGE_ALIENSNOWBLUE);
-      }
-  else
-    {
-    s_background_picture = gbitmap_create_with_resource (RESOURCE_ID_IMAGE_ALIENBLUE);
-          //APP_LOG(APP_LOG_LEVEL_DEBUG, "should be black & blue");
-    }
-}
-
-//}
-}
-
 static void accel_tap_handler(AccelAxisType axis, int32_t direction) {
   // A tap event occured
   showForecastWeather = !showForecastWeather;
@@ -274,12 +123,16 @@ static void accel_tap_handler(AccelAxisType axis, int32_t direction) {
 }
 
 void layer_update_proc_background (Layer * back_layer, GContext * ctx){
-  gbitmap_destroy(s_background_picture);
-  update_background_picture();
-  GRect bitmap_bounds = gbitmap_get_bounds(s_background_picture);
-  graphics_context_set_compositing_mode(ctx, GCompOpSet);
-  graphics_draw_bitmap_in_rect(ctx, s_background_picture, bitmap_bounds);
-//  gbitmap_destroy(s_background_picture);
+  GRect bounds = layer_get_bounds(back_layer);
+
+  GRect BackgroundRect =
+  PBL_IF_ROUND_ELSE(
+    GRect(0, 0, bounds.size.w, bounds.size.h),
+    GRect(0, 0, bounds.size.w, bounds.size.h));
+
+   graphics_context_set_fill_color(ctx, settings.Back1Color);
+   graphics_fill_rect(ctx, BackgroundRect,0,GCornersAll);
+
 }
 
 void update_time_area_layer(Layer *l, GContext* ctx7) {
@@ -362,6 +215,70 @@ void update_time_area_layer(Layer *l, GContext* ctx7) {
 }
 
 //Update main layer
+void update_weather_area_layer(Layer *l, GContext* ctx) {
+  // check layer bounds
+
+  #ifdef PBL_ROUND
+     GRect bounds = layer_get_unobstructed_bounds(l);
+     bounds = GRect(0, 0,bounds.size.w, bounds.size.h);
+  #else
+     GRect bounds = GRect (0,0,144,144);
+     bounds = GRect(0,0,bounds.size.w,bounds.size.h);
+  #endif
+
+  FContext fctx;
+
+  fctx_init_context(&fctx, ctx);
+  fctx_set_color_bias(&fctx, 0);
+
+    #ifdef PBL_ROUND
+    //int font_size = bounds.size.h * 0.55;
+    int font_size = 116;//81
+   #elif PBL_PLATFORM_APLITE
+    //int font_size = bounds.size.h * 0.65;
+    int font_size = 100;
+   #else
+    int font_size = 116;
+    #endif
+    int h_adjust = 0;
+    int v_adjust = 0;
+
+      #ifdef PBL_COLOR
+        fctx_enable_aa(true);
+      #endif
+
+    // if it's a round watch, EVERYTHING CHANGES
+    #ifdef PBL_ROUND
+      v_adjust = 0;
+
+    #else
+      h_adjust = 0;
+    #endif
+
+    FPoint icon_pos;
+    fctx_set_fill_color(&fctx, settings.Text7Color);
+    fctx_begin_fill(&fctx);
+    fctx_set_text_em_height(&fctx, weather_font, font_size);
+    fctx_set_color_bias(&fctx,0);
+  //  fctx_set_fill_color(&fctx, ColorSelect(settings.HourColor, settings.HourColorN));
+    char CondToDraw[4];
+if(!settings.UseForecast){
+  snprintf(CondToDraw, sizeof(CondToDraw), "%s",settings.iconnowstring);//"\U0000F06B");
+  }
+  else
+{
+  snprintf(CondToDraw, sizeof(CondToDraw), "%s",settings.iconforestring);//"\U0000F06B");
+}
+    icon_pos.x = INT_TO_FIXED(PBL_IF_ROUND_ELSE(90+8, 72+8) + h_adjust);
+    icon_pos.y = INT_TO_FIXED(PBL_IF_ROUND_ELSE(30+12, 30+12)  + v_adjust);
+
+    fctx_set_offset(&fctx, icon_pos);
+    fctx_draw_string(&fctx, CondToDraw, weather_font, GTextAlignmentCenter, FTextAnchorTop);
+
+    fctx_end_fill(&fctx);
+
+    fctx_deinit_context(&fctx);
+  }
 
 static void layer_update_proc(Layer * layer1, GContext * ctx){
   GRect VerticalDividerRect =
@@ -398,8 +315,10 @@ static void layer_update_proc(Layer * layer1, GContext * ctx){
     strcat(battperc, "%");
 
   // Draw the battery bar & divider bar backgrounds
-  graphics_context_set_fill_color(ctx, settings.FrameColor1);// GColorBlack);
+  graphics_context_set_fill_color(ctx, settings.Back1Color);// GColorBlack);
   graphics_fill_rect(ctx, BatteryRect, 0, GCornerNone);
+
+  graphics_context_set_fill_color(ctx, settings.FrameColor1);// GColorBlack);
   graphics_fill_rect(ctx, VerticalDividerRect, 0, GCornerNone);
 
   // Draw the battery bar
@@ -552,28 +471,18 @@ static void prv_inbox_received_handler(DictionaryIterator * iter, void * context
       }
     }
 
-// Alien choice
-  Tuple * alien_t = dict_find(iter, MESSAGE_KEY_ALIEN);
-  if (alien_t){
-    if (alien_t -> value -> int32 == 0){
-      settings.ALIEN = false;
-        APP_LOG(APP_LOG_LEVEL_DEBUG, "White Alien");
-      } else {
-      settings.ALIEN = true;
-        APP_LOG(APP_LOG_LEVEL_DEBUG, "Black&Blue Alien");
-      }
-  }
-
 //Colours
+Tuple * bk1_color_t = dict_find(iter, MESSAGE_KEY_Back1Color);
+if (bk1_color_t){
+  settings.Back1Color = GColorFromHEX(bk1_color_t-> value -> int32);
+}
+
+
   Tuple * fr1_color_t = dict_find(iter, MESSAGE_KEY_FrameColor1);
   if (fr1_color_t){
     settings.FrameColor1 = GColorFromHEX(fr1_color_t-> value -> int32);
   }
 
-  Tuple * tx1_color_t = dict_find(iter, MESSAGE_KEY_Text1Color);
-  if (tx1_color_t){
-    settings.Text1Color = GColorFromHEX(tx1_color_t-> value -> int32);
-  }
 
   Tuple * hr_color_t = dict_find(iter, MESSAGE_KEY_HourColor);
   if (hr_color_t){
@@ -595,19 +504,14 @@ static void prv_inbox_received_handler(DictionaryIterator * iter, void * context
     settings.Text4Color = GColorFromHEX(tx4_color_t-> value -> int32);
     }
 
-  Tuple * tx5_color_t = dict_find(iter,MESSAGE_KEY_Text5Color);
-  if (tx5_color_t){
-    settings.Text5Color = GColorFromHEX(tx5_color_t-> value -> int32);
-    }
-
-   Tuple * tx6_color_t = dict_find(iter,MESSAGE_KEY_Text6Color);
-  if (tx6_color_t){
-    settings.Text6Color = GColorFromHEX(tx6_color_t-> value -> int32);
-    }
+    Tuple * tx7_color_t = dict_find(iter,MESSAGE_KEY_Text7Color);
+    if (tx7_color_t){
+      settings.Text7Color = GColorFromHEX(tx7_color_t-> value -> int32);
+      }
 
   //Update for config changes
 
-  layer_mark_dirty(s_picture_bitmap_layer);
+  layer_mark_dirty(s_canvas_background);
   layer_mark_dirty(s_canvas);
   layer_mark_dirty(s_canvas_weather);
   layer_mark_dirty(s_canvas_bt_icon);
@@ -626,9 +530,18 @@ static void window_load(Window * window){
 
 //add background picture
 
-  s_picture_bitmap_layer = layer_create(bounds4);
-    layer_set_update_proc (s_picture_bitmap_layer, layer_update_proc_background);
-    layer_add_child(window_layer,s_picture_bitmap_layer);
+  s_canvas_background = layer_create(bounds4);
+    layer_set_update_proc (s_canvas_background, layer_update_proc_background);
+    layer_add_child(window_layer,s_canvas_background);
+
+  weather_area_layer = layer_create(bounds4);
+    layer_set_update_proc(weather_area_layer, update_weather_area_layer);
+    layer_add_child(window_layer, weather_area_layer);
+
+    // add time layer
+  time_area_layer = layer_create(bounds4);
+    layer_set_update_proc(time_area_layer, update_time_area_layer);
+    layer_add_child(window_layer, time_area_layer);
 
 //add day date, battery and dividers
   s_canvas = layer_create(bounds4);
@@ -645,10 +558,9 @@ static void window_load(Window * window){
     layer_set_update_proc (s_canvas_qt_icon, layer_update_proc_qt);
     layer_add_child(window_layer, s_canvas_qt_icon);
 
-// add time layer
-  time_area_layer = layer_create(bounds4);
-    layer_add_child(window_get_root_layer(s_window), time_area_layer);
-    layer_set_update_proc(time_area_layer, update_time_area_layer);
+
+
+
 
 //add weather (temperature) info layer
   s_canvas_weather = layer_create(bounds4);
@@ -659,16 +571,18 @@ static void window_load(Window * window){
 
 
 static void window_unload(Window * window){
-  layer_destroy(s_picture_bitmap_layer);
-  gbitmap_destroy(s_background_picture);
+  layer_destroy(s_canvas_background);
+//  gbitmap_destroy(s_background_picture);
   layer_destroy(s_canvas);
   layer_destroy(time_area_layer);
+  layer_destroy(weather_area_layer);
   layer_destroy(s_canvas_bt_icon);
   layer_destroy(s_canvas_qt_icon);
   layer_destroy(s_canvas_weather);
   window_destroy(s_window);
   fonts_unload_custom_font(FontIcon2);
   ffont_destroy(time_font);
+  ffont_destroy(weather_font);
 }
 
 void main_window_push(){
@@ -687,12 +601,13 @@ void main_window_update(int hours, int minutes, int weekday, int day, int month)
   s_weekday = weekday;
   s_month = month;
 
-  //layer_mark_dirty(s_picture_bitmap_layer);
+  layer_mark_dirty(s_canvas_background);
   layer_mark_dirty(s_canvas);
   //layer_mark_dirty(s_canvas_weather);
   layer_mark_dirty(s_canvas_bt_icon);
   layer_mark_dirty(s_canvas_qt_icon);
   layer_mark_dirty(time_area_layer);
+  layer_mark_dirty(weather_area_layer);
 
 }
 
@@ -723,7 +638,7 @@ static void tick_handler(struct tm * time_now, TimeUnits changed){
       // Send the message!
       app_message_outbox_send();
 
-      layer_mark_dirty(s_picture_bitmap_layer);
+  //    layer_mark_dirty(s_canvas_background);
   //    update_background_picture();
   }
 
@@ -769,6 +684,7 @@ static void init(){
   // Load Fonts
 //  update_background_picture();
   time_font =  ffont_create_from_resource(RESOURCE_ID_FFONT_GRAM);
+  weather_font= ffont_create_from_resource(RESOURCE_ID_FFONT_ERET);
  //  time_font =  ffont_create_from_resource(RESOURCE_ID_FONT_STEELFISH);
  // time_font = ffont_create_from_resource(RESOURCE_ID_FONT_DINCONBOLD);
   FontDate = PBL_IF_ROUND_ELSE(fonts_get_system_font(FONT_KEY_GOTHIC_24),fonts_get_system_font(FONT_KEY_GOTHIC_24_BOLD));

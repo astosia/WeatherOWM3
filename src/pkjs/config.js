@@ -6,7 +6,7 @@ module.exports = [
   },
   {
   "type": "heading",
-  "defaultValue": "Weather will not show unless a weather provider is selected and set up.",
+  "defaultValue": "Weather will not show unless weather provider is set up.",
   "size":6
   },
   {
@@ -22,28 +22,12 @@ module.exports = [
         "defaultValue": "Theme settings"
       },
       {
-        "type": "toggle",
-        "messageKey": "ALIEN",
-        "defaultValue": false,
-        "label": "Light/Dark Alien Theme"
-      /*  "options": [
-          {
-            "label": "White",
-            "value": "w"
-          },
-          {
-            "label": "Blue and Black",
-            "value": "b"
-          }
-        ]*/
-      },
-    /*  {
         "type": "color",
         "messageKey": "Back1Color",
         "defaultValue": "0x000000",
-        "label": "Background Colour"
-      },*/
-
+        "label": "Background Colour",
+        "allowGray":true
+      },
       {
         "type": "color",
         "messageKey": "HourColor",
@@ -56,6 +40,13 @@ module.exports = [
         "messageKey": "Text3Color",
         "defaultValue": "0x000000",
         "label": "Date & Temperature Colour",
+        "allowGray":true
+      },
+      {
+        "type": "color",
+        "messageKey": "Text7Color",
+        "defaultValue": "0x000000",
+        "label": "Weather Icon Colour",
         "allowGray":true
       },
 /*      {
@@ -110,8 +101,8 @@ module.exports = [
               {
                 "type": "toggle",
                 "messageKey": "CurrentOrFore",
-                "label": "Current/Forecast conditions picture",
-                "description": "Shows weather images based on either current (toggle is off) or forecast (toggle is on) conditions",
+                "label": "Current/Forecast conditions",
+                "description": "Shows weather based on either current (toggle is off) or forecast (toggle is on) conditions",
                 "defaultValue": false,
               },
               {
@@ -128,11 +119,11 @@ module.exports = [
                 "label": "Weather Provider",
                 "options": [
                   {
-                    "label": "OpenWeatherMap",
+                    "label": "OpenWeatherMap API 2.5",
                     "value": "owm"
                   },
                   {
-                    "label": "DarkSky",
+                    "label": "OpenWeatherMap API 3.0",
                     "value": "ds"
                   }
                 ]
@@ -161,29 +152,9 @@ module.exports = [
                 "messageKey": "APIKEY_User",
                 "defaultValue": "",
                 "label": "API Key",
-                "description": "If left blank, the watch will attempt to request an api from your pmkey.xyz.  If you don't have an api key, weather data will not be displayed. Existing DarkSky APIs will work, but you can no longer sign up for a new one. You can still register for a free personal API key for <a href =https://home.openweathermap.org/users/sign_up/>OpenWeatherMap here</a>.",
+                "description": "If you don't have an api key, weather data will not be displayed. You can register for a free personal API key for <a href =https://home.openweathermap.org/users/sign_up/>OpenWeatherMap here</a>.",
                 "attributes": {
                   "placeholder": "Paste your API Key here"
-                }
-              },
-             {
-                "type": "input",
-                "messageKey": "EmailPMKEY",
-                "defaultValue": "",
-                "label": "pmkey.xyz User",
-                "description": "pmkey.xyz is a free service for Pebble users that allows you to safely store all your API keys in a single place. Check it out and sign up at <a href=https://www.pmkey.xyz/>pmkey.xyz</a>.",
-                "attributes": {
-                  "placeholder": "eg: jane.smith@pmkey.xyz",
-                  "type": "email"
-                }
-              },
-              {
-                "type": "input",
-                "messageKey": "PINPMKEY",
-                "defaultValue": "",
-                "label": "pmkey.xyz PIN",
-                "attributes": {
-                  "placeholder": "eg: 12345"
                 }
               },
             ]
@@ -194,7 +165,7 @@ module.exports = [
           },
           {
           "type": "heading",
-          "defaultValue": "version v1.3",
+          "defaultValue": "version v1.0",
           "size":6
           },
           {

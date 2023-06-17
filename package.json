@@ -6,12 +6,12 @@
         "pebble-fctx-compiler": "^1.2.2"
     },
     "keywords": [],
-    "name": "Alienwear",
+    "name": "Weather",
     "pebble": {
         "capabilities": [
             "configurable"
         ],
-        "displayName": "Alienwear",
+        "displayName": "Weather Icon",
         "enableMultiJS": true,
         "messageKeys": [
             "Back1Color",
@@ -24,6 +24,7 @@
             "Text3Color",
             "Text4Color",
             "Text5Color",
+            "Text7Color",
             "FrameColor1",
             "Text6Color",
             "WeatherUnit",
@@ -47,64 +48,29 @@
                     "type": "raw"
                 },
                 {
+                    "file": "data/EretWeather.ffont",
+                    "name": "FFONT_ERET",
+                    "targetPlatforms": null,
+                    "type": "raw"
+                },
+                {
                     "file": "fonts/Dripicons",
                     "name": "FONT_DRIPICONS_16",
                     "targetPlatforms": null,
                     "type": "font"
-                },
-                {
-                    "file": "images/alien1clear.png",
-                    "name": "IMAGE_ALIENHEAD",
-                    "type": "png"
-                },
-                {
-                    "file": "images/alien1clearblue.png",
-                    "name": "IMAGE_ALIENBLUE",
-                    "type": "png"
-                },
-                {
-                    "file": "images/alien1rain.png",
-                    "name": "IMAGE_ALIENRAIN",
-                    "type": "png"
-                },
-                {
-                    "file": "images/alien1rainblue.png",
-                    "name": "IMAGE_ALIENRAINBLUE",
-                    "type": "png"
-                },
-                {
-                    "file": "images/alien1snow.png",
-                    "name": "IMAGE_ALIENSNOW",
-                    "type": "png"
-                },
-                {
-                    "file": "images/alien1snowblue.png",
-                    "name": "IMAGE_ALIENSNOWBLUE",
-                    "type": "png"
-                },
-                {
-                    "file": "images/alien1cloud.png",
-                    "name": "IMAGE_ALIENCLOUD",
-                    "type": "png"
-                },
-                {
-                    "file": "images/alien1cloudblue.png",
-                    "name": "IMAGE_ALIENCLOUDBLUE",
-                    "type": "png"
                 }
             ]
         },
         "sdkVersion": "3",
         "targetPlatforms": [
-            "aplite",
             "basalt",
             "chalk",
             "diorite"
         ],
-        "uuid": "bfc03c0d-2dc6-4467-8f03-0b76224f50b7",
+        "uuid": "bfc03c0d-2dc6-4467-8f03-0b76224f50b8",
         "watchapp": {
             "watchface": true
         }
     },
-    "version": "1.5.0"
+    "version": "1.0.0"
 }

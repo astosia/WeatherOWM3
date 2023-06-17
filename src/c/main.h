@@ -4,18 +4,13 @@
 // A structure containing our settings
 typedef struct ClaySettings {
 
-//  GColor Back1Color;
-  GColor FrameColor1;
-  GColor Text1Color;
-  GColor Text2Color;
-  GColor Text3Color;
-  GColor Text4Color;
-  GColor Text5Color;
-  GColor Text6Color;
-  GColor Text7Color;
-  GColor HourColor;
-  GColor MinColor;
-  bool ALIEN;
+  GColor Back1Color;  //background colour
+  GColor FrameColor1; //divider bar color
+  GColor Text2Color; //Battery Bar Colour
+  GColor Text3Color;  //Date & Temperature Colour
+  GColor Text4Color;  //Quiet Time & BT icon colour
+  GColor Text7Color; //weathericon colour
+  GColor HourColor; //time colour
   char* WeatherTemp;
   char* TempFore;
   char iconnowstring[4];

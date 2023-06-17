@@ -616,31 +616,23 @@ var owm_WindToId = {
 
 var owm_iconToId = {
     '01d': 1,
-    '01d': 2,
-    '02d': 3,
-    '02d': 4,
-    '02d': 5,
-    '02d': 6,
-    '03d': 7,
-    '04d': 7,
-    '09d': 8,
-    '10d': 8,
-    '13d': 9,
-    '11d': 10,
-    '50d': 13,
-    '01n': 20,
-    '01n': 21,
-    '02n': 22,
-    '02n': 23,
-    '02n': 24,
-    '02n': 25,
-    '03n': 26,
-    '04n': 26,
-    '09n': 27,
-    '10n': 27,
-    '13n': 28,
-    '11n': 29,
-    '50n': 32,
+    '02d': 2,
+    '03d': 3,
+    '04d': 4,
+    '09d': 5,
+    '10d': 6,
+    '13d': 7,
+    '11d': 8,
+    '50d': 9,
+    '01n': 11,
+    '02n': 12,
+    '03n': 13,
+    '04n': 14,
+    '09n': 15,
+    '10n': 16,
+    '13n': 17,
+    '11n': 18,
+    '50n': 19,
 };
 
 //clear-day, clear-night, rain, snow, sleet, wind, fog, cloudy, partly-cloudy-day, or partly-cloudy-night, hail, thunderstorm, tornado//
@@ -741,14 +733,130 @@ function suncalcinfo (pos){
                                     );
   }
 
-// Request for DarkSky
-function locationSuccessDS(pos){
-  //Request DarkSky
+  function locationSuccessPWS(pos){
+
+    //Request PWS data
+    var settings2 = JSON.parse(localStorage.getItem('clay-settings')) || {};
+    var keyAPIwu=localStorage.getItem('wuKey');
+    console.log("PMKAPI key is" + keyAPIwu);
+    var userKeyApi=settings2.PWSAPIKEY_User;
+    console.log("Manual API key is" + userKeyApi);
+    var endapikey=apikeytouse(userKeyApi,keyAPIwu);
+    console.log(endapikey);
+    var stationID=settings2.PWSStationID_User;
+    console.log(stationID);
+    //var pwsapikey=apikeytouse(userKeyApi,keyAPIds);
+    var units = unitsToString(settings2.WeatherUnit);
+  //  var unitsOWM=unitsToStringOWM(settings.WeatherUnit);
+    var windunits = windunitsToString(settings2.WindUnit);
+    var rainunits = rainunitsToString(settings2.RainUnit);
+    var pressureunits = pressureunitsToString(settings2.PressureUnit);
+    // Construct URL
+    var urlPWS = "https://api.weather.com/v2/pws/observations/current?stationId=" +
+            stationID +
+            '&format=json&units=s&apiKey=' +
+            endapikey;
+
+    console.log("PWSUrl= " + urlPWS);
+    // Send request to DarkSky
+    xhrRequest(encodeURI(urlPWS), 'GET',function(responseText) {
+      // responseText contains a JSON object with current weather info
+      var json = JSON.parse(responseText);
+      localStorage.setItem("OKAPI", 0);
+            // Current Temperature
+      var tempf = Math.round((json.observations[0].metric_si.temp * 1.8) + 32);//+'\xB0'+units;
+      var tempc = Math.round(json.observations[0].metric_si.temp);
+        var temppws=String(temptousewu(units,tempf,tempc))+'\xB0';
+
+      var citypws = String(json.observations[0].stationID);
+      //current wind
+      var windkts = Math.round(json.observations[0].metric_si.windSpeed * 1.9438444924574);
+      var windkph = Math.round(json.observations[0].metric_si.windSpeed * 3.6);
+      var windms = Math.round(json.observations[0].metric_si.windSpeed);
+      var windmph = Math.round(json.observations[0].metric_si.windSpeed * 2.2369362920544);
+        var windpws = String(windtousewu(windunits,windkph,windmph,windms,windkts));//+windunits;
+        var windroundpws = String(windtousewu(windunits,windkph,windmph,windms,windkts));//+windunits;
+      var winddegpws = String(json.observations[0].winddir);
+        var winddir_numpws = owm_WindToId[winddegpws];
+      var auxtimepws =new Date(json.observations[0].epoch*1000);
+      var pwstime=auxtimepws.getHours()*100+auxtimepws.getMinutes();
+      var precip_today_mm = Math.round(json.observations[0].metric_si.precipTotal*10)/10;
+      var precip_today_in = Math.round(json.observations[0].metric_si.precipTotal/25.4*10)/10;
+      var precip_today_pws = String(raintouse(rainunits,precip_today_mm,precip_today_in));//+rainunits;
+      var precip_rate_mm = Math.round(json.observations[0].metric_si.precipRate*10)/10;
+      var precip_rate_in = Math.round(json.observations[0].metric_si.precipRate/25.4*10)/10;
+      var precip_rate_pws= String(raintouse(rainunits,precip_rate_mm,precip_rate_in));//+rainunits;
+  //    var precip_today_pws = String(Math.round(4.2*100)/100)+'mm';
+  //    var precip_rate_pws= String(Math.round(0.2*100)/100)+'mm';
+      var pressuremb = String(Math.round(json.observations[0].metric_si.pressure));//+'mb';
+      var pressurehg = String(Math.round(json.observations[0].metric_si.pressure /33.8639*10)/10);
+      var pressuretor = String(Math.round(json.observations[0].metric_si.pressure/1.333));
+      var pressureap = String(Math.round(json.observations[0].metric_si.pressure *100));
+      var pressureatm = String(Math.round(json.observations[0].metric_si.pressure/1013*1000)/1000);
+      var pressurepws = String(pressuretouse(pressureunits,pressuremb,pressurehg,pressuretor,pressureap,pressureatm));//+pressureunits;
+
+      localStorage.setItem("OKAPI", 1);
+      console.log("OK API");
+
+      //console.log(minutely);
+      console.log(citypws);
+      console.log(temppws);
+      console.log(windpws);
+      console.log(winddir_numpws);
+      console.log(pwstime);
+      console.log(pressuremb);
+      console.log(pressurehg);
+      console.log(pressuretor);
+      console.log(pressureap);
+      console.log(pressureatm);
+      console.log(pressurepws);
+      console.log(precip_rate_pws);
+      console.log(precip_today_pws);
+
+
+      // Assemble dictionary using our keys
+      var dictionary = {
+        "WeatherTempPWS": temppws,
+        "WeatherWindPWS" : windpws,
+        "WeatherWindRoundPWS" : windroundpws,
+        "WindIconNowPWS":winddir_numpws,
+        "RainTotalTodayPWS":precip_today_pws,
+        "RainRatePWS":precip_rate_pws,
+        "PressurePWS":pressurepws,
+      };
+      // Send to Pebble
+      Pebble.sendAppMessage(dictionary,
+                            function(e) {console.log("Weather from PWS sent to Pebble successfully!");},
+                            function(e) { console.log("Error sending PWS info to Pebble!");}
+                           );
+        });
+    }
+    //else{
+    //  console.log("Aplite, ignore PWS info");
+    //}
+  //}
+
+
+function locationSuccessDS(pos){  // Request for v3 OWM api
+  //Request OWM
 //  var lat=pos.coords.latitude;
 //  var lon= pos.coords.longitude;
-  var settings2 = JSON.parse(localStorage.getItem('clay-settings')) || {};
-  var manuallat = settings2.Lat;
-  var manuallong = settings2.Long;
+  var settings3 = JSON.parse(localStorage.getItem('clay-settings')) || {};
+
+  var usepws = settings3.UsePWS;
+  var aplite = false;
+  //if (usepws === undefined || usepws === null)
+  //{
+  //  var aplite = true;
+  //  console.log("aplite true is" + aplite);
+  //}
+  //else {
+  //  var aplite = false;
+  //  console.log("aplite false is" + aplite);
+  //}
+
+  var manuallat = settings3.Lat;
+  var manuallong = settings3.Long;
   if(manuallat != null && manuallat != '' && manuallong != null && manuallong != '' ){
     var lat= manuallat;
     var lon= manuallong;
@@ -781,229 +889,256 @@ function locationSuccessDS(pos){
           }
      var moonmetrics = SunCalc.getMoonIllumination(d);
      var moonphase = Math.round(moonmetrics.phase*28);
-  var keyAPIds=localStorage.getItem('dsKey');
-  var userKeyApi=settings2.APIKEY_User;
-  var endapikey=apikeytouse(userKeyApi,keyAPIds);
-  var units = unitsToString(settings2.WeatherUnit);
-//  var unitsOWM=unitsToStringOWM(settings.WeatherUnit);
-  var windunits = windunitsToString(settings2.WindUnit);
-  var rainunits = rainunitsToString(settings2.RainUnit);
-  //var rainunits = rainunitsToString(settings2.RainUnit);
+  var keyAPIowm=localStorage.getItem('owmKey');
+  var userKeyApi=settings3.APIKEY_User;
+  var endapikey=apikeytouse(userKeyApi,keyAPIowm);
+  var units = unitsToString(settings3.WeatherUnit);
+ // var unitsOWM=unitsToStringOWM(settings3.WeatherUnit);
+  var windunits = windunitsToString(settings3.WindUnit);
+  var rainunits = rainunitsToString(settings3.RainUnit);
   var langtouse=translate(navigator.language);
   // Construct URL
-  var urlDS = "https://api.darksky.net/forecast/" +
-          endapikey +
-         '/' + lat + ',' + lon +
- //'?exclude=minutely&units=si' +
-         '?units=si' +
-         '&lang=' + langtouse;
+  var urlOWM = "http://api.openweathermap.org/data/3.0/onecall?lat=" +
+      lat + "&lon=" + lon +
+      '&appid=' + endapikey + "&exclude=alerts" +
+  //    '&units='+unitsOWM+
+      '&lang='+langtouse;
 
-
-  console.log("DSUrl= " + urlDS);
-  // Send request to DarkSky
-  xhrRequest(encodeURI(urlDS), 'GET',function(responseText) {
+  console.log("OWMUrl= " + urlOWM);
+  // Send request to OpenWeatherMap
+  xhrRequest(encodeURI(urlOWM), 'GET',function(responseText) {
     // responseText contains a JSON object with current weather info
     var json = JSON.parse(responseText);
     localStorage.setItem("OKAPI", 0);
-    // Current Temperature
-    var tempf = Math.round((json.currently.temperature * 1.8) + 32);//+'\xB0'+units;
-    var tempc = Math.round(json.currently.temperature);
-    var tempds=String(temptousewu(units,tempf,tempc))+'\xB0';
-    // Current conditions
-    //var cityds = String((Math.round(lat*100))/100 + ',' + (Math.round(lon*100))/100);
-    var cityds = String(json.timezone);
-    var condds=json.currently.summary;//description;
-    var condcleands=replaceDiacritics(condds);
-    var icon_ds = ds_iconToId[json.currently.icon];
+    // Temperature
+    var tempf = Math.round((json.current.temp * 1.8) - 459.67);//+'\xB0'+units;
+    var tempc = Math.round(json.current.temp -273.15);
+    var tempowm=String(temptousewu(units,tempf,tempc))+'\xB0';
+    //var cityowm = String((Math.round(lat*100))/100 + ',' + (Math.round(lon*100))/100);
+    var cityowm = String(json.timezone);// Conditions
+    var condowm=json.current.weather[0].main;//description;
+    var condclean=replaceDiacritics(condowm);
+    var icon_owm = owm_iconToId[json.current.weather[0].icon];
     // Sunrise and Sunset
-    var auxsunds =new Date(json.daily.data[0].sunriseTime*1000);
-    var sunriseds=auxsunds.getHours()*100+auxsunds.getMinutes();
-    var auxsetds =new Date(json.daily.data[0].sunsetTime*1000);
-    var sunsetds=auxsetds.getHours()*100+auxsetds.getMinutes();
-    //current wind
-    var windkts = Math.round(json.currently.windSpeed * 1.9438444924574);
-    var windkph = Math.round(json.currently.windSpeed * 3.6);
-    var windms = Math.round(json.currently.windSpeed);
-    var windmph = Math.round(json.currently.windSpeed * 2.2369362920544);
+    var auxsunowm =new Date(json.current.sunrise*1000);
+    var sunriseowm=auxsunowm.getHours()*100+auxsunowm.getMinutes();
+    var auxsetowm =new Date(json.current.sunset*1000);
+    var sunsetowm=auxsetowm.getHours()*100+auxsetowm.getMinutes();
+//current conditions
+    var windkts = Math.round(json.current.wind_speed * 1.9438444924574);
+    var windkph = Math.round(json.current.wind_speed * 3.6);
+    var windms = Math.round(json.current.wind_speed);
+    var windmph = Math.round(json.current.wind_speed * 2.2369362920544);
     var wind = String(windtousewu(windunits,windkph,windmph,windms,windkts))+windunits;
     var windround = String(windtousewu(windunits,windkph,windmph,windms,windkts));//+windunits;
-    var winddegds = String(json.currently.windBearing);
-    var winddir_numds = owm_WindToId[winddegds];
-    // Forecast Conditions
-    var forecast_icon_ds = ds_iconToId[json.daily.data[0].icon];
-    // Forecast Temperature & wind
-                  var forecast_high_tempf = Math.round((json.daily.data[0].temperatureHigh * 1.8) + 32);       //+'\xB0';
-                  var forecast_low_tempf = Math.round((json.daily.data[0].temperatureLow * 1.8) + 32);        //+'\xB0';
-                  var forecast_high_tempc = Math.round(json.daily.data[0].temperatureHigh);              //+ '\xB0';
-                  var forecast_low_tempc = Math.round(json.daily.data[0].temperatureLow);              //+ '\xB0';
-                  var highds = String(temptousewu(units,forecast_high_tempf,forecast_high_tempc));
-                  var lowds = String(temptousewu(units,forecast_low_tempf,forecast_low_tempc));
-                  var highlowds = highds + '|'+ lowds+'\xB0';
-                  var forecast_ave_wind_mph = Math.round(json.daily.data[0].windSpeed*2.2369362920544);
-                  var forecast_ave_wind_kts = Math.round(json.daily.data[0].windSpeed *1.9438444924574);
-                  var forecast_ave_wind_kph = Math.round(json.daily.data[0].windSpeed *3.6);
-                  var forecast_ave_wind_ms = Math.round(json.daily.data[0].windSpeed);
-                  var forecast_wind_degds = String(json.daily.data[0].windBearing);
-                  var forecast_wind_dir_numds = owm_WindToId[forecast_wind_degds];
-                  var forecast_ave_wind_ds = String(windtousewu(windunits,forecast_ave_wind_kph,forecast_ave_wind_mph,forecast_ave_wind_ms,forecast_ave_wind_kts))+windunits;
-                  var forecast_ave_wind_ds_round = String(windtousewu(windunits,forecast_ave_wind_kph,forecast_ave_wind_mph,forecast_ave_wind_ms,forecast_ave_wind_kts));//+windunits;
-                  var auxtimeds =new Date(json.currently.time*1000);
-                  var dstime=auxtimeds.getHours()*100+auxtimeds.getMinutes();
-                  var precip_chance_next_hour=Math.round(json.hourly.data[1].precipProbability *100);
-                  var rain_chance_next_hour=String(precip_chance_next_hour)+'\x25';
-                  var icon_next_hour = ds_iconToId[json.hourly.data[1].icon];
-                  //const response = json.miutely.data[0].precipIntensity;
-                  //const result2 = response.json();typeof(json.minutely) == 'undefined'
-                  //var rainn60= Math.round(json.hourly.data[1].precipIntensity*100)/100;//json.minutely[60].precipitation*10)/10;//var rainn60= Math.round(json.hourly.data[1].precipIntensity*10)/10;
-                  //var rain_next_60 = String(rainn60)+'|'+ String(rain_chance_next_hour);
-                  //var rain_next_60 = String(rain_chance_next_hour);
-                  var raintimetaken=auxtimeds.getHours()*100+auxtimeds.getMinutes();
-                  var raintimehr = ('0'+auxtimeds.getHours()).substr(-2);
-                  var raintimemin = ('0'+auxtimeds.getMinutes()).substr(-2);
-                  var raintimeStr24h = String(raintimehr + ":" + raintimemin);
-                  var rainStrhr12 = parseInt(auxtimeds.getHours());
-                  if(rainStrhr12 > 12 ){
-                    var raintimeStr12h = String (rainStrhr12 - 12 + ":" + raintimemin);// +"pm");
-                    }
-                  else{
-                    var raintimeStr12h = String (rainStrhr12  + ":" + raintimemin);// + "am");
-                    }
-                    var minutely = json.minutely;
-                    if(minutely === null || minutely === undefined) {
-                    //if(JSON.typeof(json.minutely.data) == undefined){
-                      var rain0= Math.round(json.hourly.data[0].precipIntensity*100);///100;
-                      var rain10= Math.round(json.hourly.data[0].precipIntensity*100);///100;
-                      var rain20= Math.round(json.hourly.data[0].precipIntensity*100);///100;
-                      var rain30= Math.round(json.hourly.data[0].precipIntensity*100);///100;
-                      var rain40= Math.round(json.hourly.data[1].precipIntensity*100);///100;
-                      var rain50= Math.round(json.hourly.data[1].precipIntensity*100);///100;
-                      var rain60= Math.round(json.hourly.data[1].precipIntensity*100);///100;
+    var winddeg = String(json.current.wind_deg);
+    var winddir_num = owm_WindToId[winddeg];
+//forecast
+    var forecast_icon_owm = owm_iconToId[json.daily[0].weather[0].icon];
+    var forecast_high_tempf = Math.round((json.daily[0].temp.max* 1.8) - 459.67);       //+'\xB0';
+    var forecast_low_tempf = Math.round((json.daily[0].temp.min* 1.8) - 459.67);        //+'\xB0';
+    var forecast_high_tempc = Math.round(json.daily[0].temp.max - 273.15);              //+ '\xB0';
+    var forecast_low_tempc = Math.round(json.daily[0].temp.min - 273.15);              //+ '\xB0';
+    var highowm = String(temptousewu(units,forecast_high_tempf,forecast_high_tempc));//+'\xB0';
+    var lowowm = String(temptousewu(units,forecast_low_tempf,forecast_low_tempc));//+'\xB0';
+    var highlowowm = highowm + '|'+ lowowm +'\xB0';
+    var forecast_ave_wind_mph = Math.round(json.daily[0].wind_speed*2.2369362920544);
+    var forecast_ave_wind_kts = Math.round(json.daily[0].wind_speed *1.9438444924574);
+    var forecast_ave_wind_kph = Math.round(json.daily[0].wind_speed *3.6);
+    var forecast_ave_wind_ms = Math.round(json.daily[0].wind_speed);
+    var forecast_wind_deg = String(json.daily[0].wind_deg);
+    var forecast_wind_dir_num = owm_WindToId[forecast_wind_deg];
+    var forecast_ave_wind_owm = String(windtousewu(windunits,forecast_ave_wind_kph,forecast_ave_wind_mph,forecast_ave_wind_ms,forecast_ave_wind_kts));//+windunits;
+    var forecast_ave_wind_owm_round = String(windtousewu(windunits,forecast_ave_wind_kph,forecast_ave_wind_mph,forecast_ave_wind_ms,forecast_ave_wind_kts));//+windunits;
+    var auxtimeowm =new Date(json.current.dt*1000);
+    var owmtime =auxtimeowm.getHours()*100+auxtimeowm.getMinutes();
+    var precip_chance_next_hour=Math.round(json.hourly[1].pop *100);
+    var rain_chance_next_hour=String(precip_chance_next_hour)+'\x25';
+    var icon_next_hour = owm_iconToId[json.hourly[1].weather[0].icon];
+    //var raintimeowm =new Date(json.minutely[0].dt*1000);
+    var raintimetaken=auxtimeowm.getHours()*100+auxtimeowm.getMinutes();
+    var raintimehr = ('0'+auxtimeowm.getHours()).substr(-2);
+    var raintimemin = ('0'+auxtimeowm.getMinutes()).substr(-2);
+    var raintimeStr24h = String(raintimehr + ":" + raintimemin);
+    //const response = json.minutely[0].precipitation;
+    //const result2 = response.json();
+    //const result2 = json.minutely[0].precipitation;
+    //var rain35raw = json.hourly[1].rain1h;
+    //if(rain35raw === null || rain35raw === undefined) {
+    //    var rainn60 = 0;
+    //    }
+    //else {
+    //    var rainn60 = Math.round(json.hourly[1].rain1h*100)/100;
+    //    }
+    //var rain_next_60 = String(rain_chance_next_hour); //String(rainn60)+'|'+
+    var rainStrhr12 = parseInt(auxtimeowm.getHours());
+    if(rainStrhr12 > 12 ){
+      var raintimeStr12h = String (rainStrhr12 - 12 + ":" + raintimemin);// +"pm");
+      }
+    else{
+      var raintimeStr12h = String (rainStrhr12  + ":" + raintimemin);// + "am");
+      }
 
-                        var rain5= Math.round(json.hourly.data[0].precipIntensity*100);///100;
-                        var rain15= Math.round(json.hourly.data[0].precipIntensity*100);///100;
-                        var rain25= Math.round(json.hourly.data[0].precipIntensity*100);///100;
-                        var rain35= Math.round(json.hourly.data[1].precipIntensity*100);///100;
-                        var rain45= Math.round(json.hourly.data[1].precipIntensity*100);///100;
-                        var rain55= Math.round(json.hourly.data[1].precipIntensity*100);///100;
-                        var rainn60mm= String(Math.round(json.hourly.data[1].precipIntensity*100)/100);
-                        var rainn60in= String(Math.round(json.hourly.data[1].precipIntensity*100/25.4)/100);
-                        var rainn60 = String(raintouse(rainunits,rainn60mm,rainn60in));//+rainunits;//json.minutely[60].precipitation*10)/10;//var rainn60= Math.round(json.hourly.data[1].precipIntensity*10)/10;
-                        var rain_next_60 = String(rainn60)+'|'+ String(rain_chance_next_hour);
-                      //var rainn60= Math.round(json.hourly.data[1].precipIntensity*100)/100;//json.minutely[60].precipitation*10)/10;//var rainn60= Math.round(json.hourly.data[1].precipIntensity*10)/10;
-                      //var rain_next_60 = String(rainn60)+'|'+ String(rain_chance_next_hour);
-                      var rain_available = String("naRain");
-                      }
-                    else{
-                      var rain0= Math.round(json.minutely.data[0].precipIntensity*100);///100;
-                      var rain10= Math.round(json.minutely.data[10].precipIntensity*100);///100;
-                      var rain10= Math.round(json.minutely.data[10].precipIntensity*100);///100;
-                      var rain20= Math.round(json.minutely.data[20].precipIntensity*100);///100;
-                      var rain30= Math.round(json.minutely.data[30].precipIntensity*100);///100;
-                      var rain40= Math.round(json.minutely.data[40].precipIntensity*100);///100;
-                      var rain50= Math.round(json.minutely.data[50].precipIntensity*100);///100;
-                      var rain60= Math.round(json.minutely.data[60].precipIntensity*100);///100;
+      var minutely = json.minutely;
+      var rain0raw = json.hourly[0].rain1h;
+      var rain35raw = json.hourly[1].rain1h;
+      if(minutely === null || minutely === undefined) {
+          if(rain0raw === null || rain0raw === undefined) {
+            var rain0 = 0;
+          }
+          else {
+            var rain0 = Math.round(json.hourly[0].rain1h*100);///100;
+          }
 
-                        var rain5= Math.round(json.minutely.data[5].precipIntensity*100);///100;
-                        var rain15= Math.round(json.minutely.data[15].precipIntensity*100);///100;
-                        var rain25= Math.round(json.minutely.data[25].precipIntensity*100);///100;
-                        var rain35= Math.round(json.minutely.data[35].precipIntensity*100);///100;
-                        var rain45= Math.round(json.minutely.data[45].precipIntensity*100);///100;
-                        var rain55= Math.round(json.minutely.data[55].precipIntensity*100);///100;
-                        var rainn60mm= String(Math.round((rain0+rain5+rain10+rain15+rain20+rain25+rain30+rain35+rain40+rain45+rain50+rain55+rain60)/100/13*10)/10);//json.minutely[60].precipitation*10)/10;//var rainn60= Math.round(json.hourly.data[1].precipIntensity*10)/10;
-                        var rainn60in= String(Math.round((rain0+rain5+rain10+rain15+rain20+rain25+rain30+rain35+rain40+rain45+rain50+rain55+rain60)/100/13*10/25.4)/10);//json.minutely[60].precipitation*10)/10;//var rainn60= Math.round(json.hourly.data[1].precipIntensity*10)/10;
-                        var rainn60 = String(raintouse(rainunits,rainn60mm,rainn60in));
-                        var rain_next_60 = String(rainn60)+'|'+ String(rain_chance_next_hour);
+        var rain10= rain0;
+        var rain20= rain0;
+        var rain5= rain0;
+        var rain15= rain0;
+        var rain25= rain0;
 
-                      var rain_available = String("Rain");
-                      }
+         if(rain30raw === null || rain30raw === undefined) {
+            var rain30 = 0;
+          }
+          else {
+            var rain30 = Math.round(json.hourly[1].rain1h*100);///100;
+          }
+        var rain40= rain30;
+        var rain50= rain30;
+        var rain60= rain30;
+
+          var rain35= rain30;
+          var rain45= rain30;
+          var rain55= rain30;
+
+        var rainn60mm= String(Math.round(rain30)/100);//json.minutely[60].precipitation*10)/10;//var rainn60= Math.round(json.hourly.data[1].precipIntensity*10)/10;
+        var rainn60in= String(Math.round(rain30/25.4)/100);
+        var rainn60 = String(raintouse(rainunits,rainn60mm,rainn60in));
+        var rain_next_60 = String(rainn60);//+'|'+ String(rain_chance_next_hour);
+        var rain_available = String("naRain");
+        }
+      else{
+        var rain0 =  Math.round(json.minutely[0].precipitation*100);///100;
+        var rain10 =  Math.round(json.minutely[10].precipitation*100);///100;
+        var rain20 =  Math.round(json.minutely[20].precipitation*100);///100;
+        var rain30 =  Math.round(json.minutely[30].precipitation*100);///100;
+        var rain40 =  Math.round(json.minutely[40].precipitation*100);///100;
+        var rain50 =  Math.round(json.minutely[50].precipitation*100);///100;
+        var rain60 =  Math.round(json.minutely[60].precipitation*100);///100;
+
+          var rain5 =  Math.round(json.minutely[5].precipitation*100);///100;
+          var rain15 =  Math.round(json.minutely[15].precipitation*100);///100;
+          var rain25 =  Math.round(json.minutely[25].precipitation*100);///100;
+          var rain35 =  Math.round(json.minutely[35].precipitation*100);///100;
+          var rain45 =  Math.round(json.minutely[45].precipitation*100);///100;
+          var rain55 =  Math.round(json.minutely[55].precipitation*100);///100;
+          var rainn60mm= Math.round((rain0+rain5+rain10+rain15+rain20+rain25+rain30+rain35+rain40+rain45+rain50+rain55+rain60)/13/100*10)/10;//json.minutely[60].precipitation*10)/10;
+          var rainn60in= Math.round((rain0+rain5+rain10+rain15+rain20+rain25+rain30+rain35+rain40+rain45+rain50+rain55+rain60)/13/100*10/25.4)/10;//json.minutely[60].precipitation*10)/10;
+          var rainn60 = String(raintouse(rainunits,rainn60mm,rainn60in));
+          var rain_next_60 = String(rainn60);//+'|'+ String(rain_chance_next_hour);
+
+        var rain_available = String("Rain");
+      }
+
+//    var rain_next_hour=Math.round(json.hourly[1].rain.1h);
 
 
-                  localStorage.setItem("OKAPI", 1);
-                  console.log("OK API");
+    //console.log(minutely);
+    console.log(condclean);
+    console.log(sunsetowm);
+    console.log(sunriseowm);
+    console.log(wind);
+    console.log(winddir_num);
+    console.log(tempowm);
+    console.log(icon_owm);
+    console.log(highowm);
+    console.log(forecast_icon_owm);
+    console.log(lowowm);
+    console.log(highlowowm);
+    console.log(forecast_wind_dir_num);
+    console.log(forecast_ave_wind_owm);
+    console.log(sunsetStr);
+    console.log(sunriseStr);
+    console.log(moonphase);
+    console.log(winddeg);
+    console.log(forecast_wind_deg);
+    console.log(owmtime);
+    console.log(icon_next_hour);
+    console.log(rain_next_60);
+    console.log(raintimetaken);
+    console.log(rain_chance_next_hour);
+    console.log(rain60);
+    console.log(rain0);
+    console.log(rain10);
+    console.log(rain20);
+    //console.log(rainn60);
 
-                  //console.log(minutely);
-                  console.log(condcleands);
-                  console.log(sunsetds);
-                  console.log(sunriseds);
-                  console.log(wind);
-                  console.log(winddir_numds);
-                  console.log(tempds);
-                  console.log(icon_ds);
-                  console.log(highds);
-                  console.log(forecast_icon_ds);
-                  console.log(lowds);
-                  console.log(forecast_wind_dir_numds);
-                  console.log(forecast_ave_wind_ds);
-                  console.log(sunsetStr);
-                  console.log(sunriseStr);
-                  console.log(moonphase);
-                  console.log(winddegds);
-                  console.log(forecast_wind_degds);
-                  console.log(dstime);
-                  console.log(icon_next_hour);
-                  console.log(rainn60);
-                  console.log(raintimetaken);
-                  console.log(rain_chance_next_hour);
-                  console.log(rain_next_60);
-                  console.log(rain0);
-                  console.log(rain10);
-                  console.log(rain20);
-                  //console.log(rain60);
+//    console.log(rain_next_hour);
+
+
+   // var wind = String(windkts + "kts");
+    localStorage.setItem("OKAPI", 1);
+    console.log("OK API");
+
+  //    xhrRequest(encodeURI(urlForecast), 'GET',function(forecastresponseText) {
+      // forecastresponseText contains a JSON object with forecast weather info
+  //    var jsonf = JSON.parse(forecastresponseText);
+  //    localStorage.setItem("OKAPIForecast", 0);
+        // Forecast Conditions
+    //              var condowm=jsonf.weather[0].main;//description;
 
 
     // Assemble dictionary using our keys
-
       var dictionary = {
-        "WeatherTemp": tempds,
-        "WeatherCond": condcleands,
-        "HourSunset": sunsetds,
-        "HourSunrise":sunriseds,
-        "WeatherWind" : wind,
-        "WeatherWindRound" : windround,
-        "WEATHER_SUNSET_KEY":sunsetStr,
-        "WEATHER_SUNRISE_KEY":sunriseStr,
-        "WEATHER_SUNSET_KEY_12H":sunsetStr12h,
-        "WEATHER_SUNRISE_KEY_12H":sunriseStr12h,
-        "IconNow":icon_ds,
-        "IconFore":forecast_icon_ds,
-        "TempFore": highlowds,//hi_low,
-        "TempForeLow": lowds,
-        "WindFore": forecast_ave_wind_ds,
-        "WindForeRound" : forecast_ave_wind_ds_round,
-        "WindIconNow":winddir_numds,
-        "WindIconAve":forecast_wind_dir_numds,
-        "Weathertime":dstime,
-        "MoonPhase": moonphase,
-        "Cond1h": icon_next_hour,
-        "pop1h": rain_chance_next_hour,
-        "rain1h": rain_next_60,
-        "raintime24h": raintimeStr24h,
-        "raintime12h": raintimeStr12h,
-        "NameLocation": cityds,
-        "rain0": rain0,
-        "rain10": rain10,
-        "rain20": rain20,
-        "rain30": rain30,
-        "rain40": rain40,
-        "rain50": rain50,
-        "rain60": rain60,
-        "rain5": rain5,
-        "rain15": rain15,
-        "rain25": rain25,
-        "rain35": rain35,
-        "rain45": rain45,
-        "rain55": rain55,
-        };
-
-  //    "rain1h": 0,
+      "WeatherTemp": tempowm,
+      "WeatherCond": condclean,
+      "HourSunset": sunsetowm,
+      "HourSunrise":sunriseowm,
+      "WeatherWind" : wind,
+      "WeatherWindRound" : windround,
+      "WEATHER_SUNSET_KEY":sunsetStr,
+      "WEATHER_SUNRISE_KEY":sunriseStr,
+      "WEATHER_SUNSET_KEY_12H":sunsetStr12h,
+      "WEATHER_SUNRISE_KEY_12H":sunriseStr12h,
+      "IconNow":icon_owm,
+      "IconFore":forecast_icon_owm,
+      "TempFore": highlowowm,//hi,
+      "TempForeLow": lowowm,
+      "WindFore": forecast_ave_wind_owm,
+      "WindForeRound" : forecast_ave_wind_owm_round,
+      "WindIconNow":winddir_num,
+      "WindIconAve":forecast_wind_dir_num,
+      "Weathertime":owmtime,
+      "MoonPhase": moonphase,
+      "Cond1h": icon_next_hour,
+      "pop1h": rain_chance_next_hour,
+      "rain1h": rain_next_60,
+      "raintime24h": raintimeStr24h,
+      "raintime12h": raintimeStr12h,
+      "NameLocation": cityowm,
+      "rain0": rain0,
+      "rain10": rain10,
+      "rain20": rain20,
+      "rain30": rain30,
+      "rain40": rain40,
+      "rain50": rain50,
+      "rain60": rain60,
+      "rain5": rain5,
+      "rain15": rain15,
+      "rain25": rain25,
+      "rain35": rain35,
+      "rain45": rain45,
+      "rain55": rain55,
+    };
 
     // Send to Pebble
     Pebble.sendAppMessage(dictionary,
-                          function(e) {console.log("Weather from DS sent to Pebble successfully!");},
-                          function(e) { console.log("Error sending DS info to Pebble!");}
+                          function(e) {console.log("Weather from OWM sent to Pebble successfully!");},
+                          function(e) { console.log("Error sending OWM info to Pebble!");}
                          );
-      });
-}
+  //    });
+  });
+
+  }
 
 // Request for OWM
 function locationSuccessOWM(pos){
@@ -1011,6 +1146,18 @@ function locationSuccessOWM(pos){
 //  var lat=pos.coords.latitude;
 //  var lon= pos.coords.longitude;
   var settings3 = JSON.parse(localStorage.getItem('clay-settings')) || {};
+
+  var usepws = settings3.UsePWS;
+  var aplite = false;
+  //if (usepws === undefined || usepws === null)
+  //{
+  //  var aplite = true;
+  //  console.log("aplite true is" + aplite);
+  //}
+  //else {
+  //  var aplite = false;
+  //  console.log("aplite false is" + aplite);
+  //}
 
   var manuallat = settings3.Lat;
   var manuallong = settings3.Long;
@@ -1096,16 +1243,16 @@ function locationSuccessOWM(pos){
     var forecast_low_tempf = Math.round((json.daily[0].temp.min* 1.8) - 459.67);        //+'\xB0';
     var forecast_high_tempc = Math.round(json.daily[0].temp.max - 273.15);              //+ '\xB0';
     var forecast_low_tempc = Math.round(json.daily[0].temp.min - 273.15);              //+ '\xB0';
-    var highowm = String(temptousewu(units,forecast_high_tempf,forecast_high_tempc));
-    var lowowm = String(temptousewu(units,forecast_low_tempf,forecast_low_tempc));
-    var highlowowm = highowm + '|'+ lowowm+'\xB0';
+    var highowm = String(temptousewu(units,forecast_high_tempf,forecast_high_tempc));//+'\xB0';
+    var lowowm = String(temptousewu(units,forecast_low_tempf,forecast_low_tempc));//+'\xB0';
+    var highlowowm = highowm + '|'+ lowowm +'\xB0';
     var forecast_ave_wind_mph = Math.round(json.daily[0].wind_speed*2.2369362920544);
     var forecast_ave_wind_kts = Math.round(json.daily[0].wind_speed *1.9438444924574);
     var forecast_ave_wind_kph = Math.round(json.daily[0].wind_speed *3.6);
     var forecast_ave_wind_ms = Math.round(json.daily[0].wind_speed);
     var forecast_wind_deg = String(json.daily[0].wind_deg);
     var forecast_wind_dir_num = owm_WindToId[forecast_wind_deg];
-    var forecast_ave_wind_owm = String(windtousewu(windunits,forecast_ave_wind_kph,forecast_ave_wind_mph,forecast_ave_wind_ms,forecast_ave_wind_kts))+windunits;
+    var forecast_ave_wind_owm = String(windtousewu(windunits,forecast_ave_wind_kph,forecast_ave_wind_mph,forecast_ave_wind_ms,forecast_ave_wind_kts));//+windunits;
     var forecast_ave_wind_owm_round = String(windtousewu(windunits,forecast_ave_wind_kph,forecast_ave_wind_mph,forecast_ave_wind_ms,forecast_ave_wind_kts));//+windunits;
     var auxtimeowm =new Date(json.current.dt*1000);
     var owmtime =auxtimeowm.getHours()*100+auxtimeowm.getMinutes();
@@ -1170,7 +1317,7 @@ function locationSuccessOWM(pos){
         var rainn60mm= String(Math.round(rain30)/100);//json.minutely[60].precipitation*10)/10;//var rainn60= Math.round(json.hourly.data[1].precipIntensity*10)/10;
         var rainn60in= String(Math.round(rain30/25.4)/100);
         var rainn60 = String(raintouse(rainunits,rainn60mm,rainn60in));
-        var rain_next_60 = String(rainn60)+'|'+ String(rain_chance_next_hour);
+        var rain_next_60 = String(rainn60);//+'|'+ String(rain_chance_next_hour);
         var rain_available = String("naRain");
         }
       else{
@@ -1191,7 +1338,7 @@ function locationSuccessOWM(pos){
           var rainn60mm= Math.round((rain0+rain5+rain10+rain15+rain20+rain25+rain30+rain35+rain40+rain45+rain50+rain55+rain60)/13/100*10)/10;//json.minutely[60].precipitation*10)/10;
           var rainn60in= Math.round((rain0+rain5+rain10+rain15+rain20+rain25+rain30+rain35+rain40+rain45+rain50+rain55+rain60)/13/100*10/25.4)/10;//json.minutely[60].precipitation*10)/10;
           var rainn60 = String(raintouse(rainunits,rainn60mm,rainn60in));
-          var rain_next_60 = String(rainn60)+'|'+ String(rain_chance_next_hour);
+          var rain_next_60 = String(rainn60);//+'|'+ String(rain_chance_next_hour);
 
         var rain_available = String("Rain");
       }
@@ -1226,7 +1373,7 @@ function locationSuccessOWM(pos){
     console.log(rain60);
     console.log(rain0);
     console.log(rain10);
-    console.log(rain20); 
+    console.log(rain20);
     //console.log(rainn60);
 
 //    console.log(rain_next_hour);
@@ -1258,7 +1405,7 @@ function locationSuccessOWM(pos){
       "WEATHER_SUNRISE_KEY_12H":sunriseStr12h,
       "IconNow":icon_owm,
       "IconFore":forecast_icon_owm,
-      "TempFore": highlowowm,//hi_low,
+      "TempFore": highlowowm,//hi,
       "TempForeLow": lowowm,
       "WindFore": forecast_ave_wind_owm,
       "WindForeRound" : forecast_ave_wind_owm_round,
@@ -1320,7 +1467,29 @@ function getinfo() {
   var manuallong = settings4.Long;
   var email=settings4.EmailPMKEY;
   var pin=settings4.PINPMKEY;
-
+  //var pwsKey=settings4.PWSAPIKEY_User;
+  var usepws = settings4.UsePWS;
+  var aplite = false;
+  //if (usepws === undefined || usepws === null)
+  //{
+  //  var aplite = true;
+  //  console.log("aplite true is" + aplite);
+  //}
+  //else {
+  //  var aplite = false;
+  //  console.log("aplite false is" + aplite);
+  //}
+  if(!aplite)
+  {
+    var pwsIDraw=settings4.PWSStationID_User;
+    if (pwsIDraw !== undefined)
+      {
+        var pwsID=settings4.PWSStationID_User;
+      } else {
+        var pwsID='';
+      }
+  }
+  //localStorage.setItem("pwsKey", pwsKey);
   if (email !== undefined && pin !== undefined) {
     //Request API from pmkey.xyz
     var urlpmk='https://pmkey.xyz/search/?email='+email+"&pin="+pin;
@@ -1343,12 +1512,25 @@ function getinfo() {
                    localStorage.setItem("owmKey", owmKey);
                    localStorage.setItem("dsKey", dsKey);
                    localStorage.setItem("wuKey", wuKey);
+
+                   //localStorage.setItem("pwsKey", wuKey);
                  }
                 );
     }
   }
   var weatherprov=settings4.WeatherProv;
 
+  //suncalcinfo();
+  if(!aplite && pwsID !== null && pwsID !== undefined && pwsID !==''){
+    console.log("Ready from PWS");
+    locationSuccessPWS();
+  }
+  else if(aplite) {
+    console.log("Aplite ignore PWS");
+  }
+  else {
+    console.log("PWS error");
+  }
 
   if (weatherprov=="owm"){
     console.log("Ready from OWM");
