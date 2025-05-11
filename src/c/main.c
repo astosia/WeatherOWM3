@@ -46,15 +46,15 @@ static char* weather_conditions[] = {
   "\U0000F076", // 'snow': 7,
   "\U0000F016", // 'tstorms': 8,
   "\U0000F021", // 'mist': 9,
-  "\U0000F02E", // 'nt_clear': 11,
-  "\U0000F081", // 'nt_few clouds': 12,
-  "\U0000F086", // 'nt_scattered clouds': 13,
-  "\U0000F013", // 'nt_broken clouds' : 14
-  "\U0000F019", // 'nt_shower rain': 15,
-  "\U0000F036", // 'nt_rain': 16,
-  "\U0000F076", // 'nt_snow': 17,
-  "\U0000F016", // 'nt_tstorms': 18,
-  "\U0000F021", // 'nt_mist': 19,
+  "\U0000F02E", // 'nt_clear': 10,
+  "\U0000F081", // 'nt_few clouds': 11,
+  "\U0000F086", // 'nt_scattered clouds': 12,
+  "\U0000F013", // 'nt_broken clouds' : 13
+  "\U0000F019", // 'nt_shower rain': 14,
+  "\U0000F036", // 'nt_rain': 15,
+  "\U0000F076", // 'nt_snow': 16,
+  "\U0000F016", // 'nt_tstorms': 17,
+  "\U0000F021", // 'nt_mist': 18,
 };
 //////Init Configuration///
 //Init Clay

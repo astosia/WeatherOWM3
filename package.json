@@ -6,12 +6,12 @@
         "pebble-fctx-compiler": "^1.2.2"
     },
     "keywords": [],
-    "name": "Weather",
+    "name": "BigWeather",
     "pebble": {
         "capabilities": [
             "configurable"
         ],
-        "displayName": "Weather Icon",
+        "displayName": "Big Weather",
         "enableMultiJS": true,
         "messageKeys": [
             "Back1Color",
@@ -72,5 +72,5 @@
             "watchface": true
         }
     },
-    "version": "1.0.0"
+    "version": "2.0"
 }
